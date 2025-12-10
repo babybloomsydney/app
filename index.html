@@ -4,21 +4,31 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Baby Bloom</title>
+    
+    <!-- TAILWIND -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"></script>
+    
+    <!-- FONT AWESOME (Fixed Link) -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" xintegrity="sha512-z3gLpd7yknf1YoNbCzqRKc4qyor8gaKU1qmn+CShxbuBusANI9QpRohGBreCFkKxLhei6S9CQXFEbbKuqLg0DA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    
+    <!-- CHARTS -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <!-- STYLES -->
     <link rel="stylesheet" href="css/style.css">
 </head>
-<body class="font-sans text-slate-800">
+<body class="font-sans text-slate-800 bg-slate-50">
 
-    <!-- NAV -->
+    <!-- 1. TOP NAV -->
     <div class="fixed top-0 w-full z-40 bg-white/95 backdrop-blur-sm border-b border-slate-100">
         <div class="max-w-md mx-auto px-4 pt-4 pb-2 flex justify-between items-center">
             <div class="flex items-center gap-3">
-                <div id="childAvatar" class="w-10 h-10 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-600 font-bold text-lg">?</div>
+                <div id="childAvatar" class="w-10 h-10 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-600 font-bold text-lg shadow-sm border border-emerald-200">
+                    <i class="fa-solid fa-user"></i>
+                </div>
                 <div>
                     <h1 id="childNameTitle" class="font-bold text-slate-800 leading-none mb-1">Loading...</h1>
-                    <button onclick="App.logout()" class="text-xs text-slate-400 font-medium hover:text-emerald-600">Logout</button>
+                    <button onclick="App.logout()" class="text-xs text-slate-400 font-medium hover:text-emerald-600 transition">Switch Profile</button>
                 </div>
             </div>
         </div>
@@ -28,96 +38,130 @@
         </div>
     </div>
 
-    <!-- MAIN -->
-    <div class="max-w-md mx-auto mt-36 px-4 pb-24">
+    <!-- 2. MAIN CONTAINER -->
+    <div class="max-w-md mx-auto mt-36 px-4 pb-32">
         <div id="view-feed" class="view-section space-y-4 min-h-[50vh]"><div id="feedContainer"></div></div>
         <div id="view-progress" class="view-section hidden space-y-6">
             <div class="bg-white p-6 rounded-3xl shadow-sm border border-slate-100">
-                <h3 class="font-bold text-slate-700 mb-4">Mastery Balance</h3>
-                <div class="aspect-square"><canvas id="radarChart"></canvas></div>
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="font-bold text-slate-700">Mastery Balance</h3>
+                    <span class="text-xs bg-emerald-100 text-emerald-700 px-2 py-1 rounded-full font-bold">Live</span>
+                </div>
+                <div class="aspect-square relative"><canvas id="radarChart"></canvas></div>
             </div>
+            <div class="grid grid-cols-2 gap-3" id="statsGrid"></div>
         </div>
     </div>
 
-    <!-- FAB -->
+    <!-- 3. FAB -->
     <div class="fixed bottom-6 right-6 z-50 flex flex-col items-end gap-3 pointer-events-none">
         <div id="fabMenu" class="hidden flex flex-col items-end gap-3 mb-2 pointer-events-auto">
-            <button onclick="FAB.openPlan()" class="flex items-center gap-3 bg-white text-slate-600 py-2.5 px-5 rounded-full shadow-xl border border-slate-50 animate-slide-up"><span class="font-bold text-sm">Plan Activity</span><div class="w-8 h-8 rounded-full bg-indigo-100 text-indigo-600 flex items-center justify-center"><i class="fa-solid fa-wand-magic-sparkles"></i></div></button>
-            <button onclick="FAB.openLog()" class="flex items-center gap-3 bg-white text-slate-600 py-2.5 px-5 rounded-full shadow-xl border border-slate-50 animate-slide-up"><span class="font-bold text-sm">Log Observation</span><div class="w-8 h-8 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center"><i class="fa-solid fa-eye"></i></div></button>
+            <button onclick="FAB.openPlan()" class="flex items-center gap-3 bg-white text-slate-600 py-2.5 px-5 rounded-full shadow-xl shadow-slate-200 border border-slate-50 animate-slide-up hover:scale-105 transition"><span class="font-bold text-sm">Plan Activity</span><div class="w-8 h-8 rounded-full bg-indigo-100 text-indigo-600 flex items-center justify-center"><i class="fa-solid fa-wand-magic-sparkles"></i></div></button>
+            <button onclick="FAB.openLog()" class="flex items-center gap-3 bg-white text-slate-600 py-2.5 px-5 rounded-full shadow-xl shadow-slate-200 border border-slate-50 animate-slide-up hover:scale-105 transition" style="animation-delay: 0.05s"><span class="font-bold text-sm">Log Observation</span><div class="w-8 h-8 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center"><i class="fa-solid fa-eye"></i></div></button>
         </div>
-        <button onclick="FAB.toggle()" id="fabBtn" class="pointer-events-auto w-14 h-14 bg-slate-900 text-white rounded-full shadow-2xl flex items-center justify-center text-2xl fab-menu"><i id="fabIcon" class="fa-solid fa-plus"></i></button>
+        <button onclick="FAB.toggle()" id="fabBtn" class="pointer-events-auto w-14 h-14 bg-slate-900 text-white rounded-full shadow-2xl shadow-slate-400 flex items-center justify-center text-2xl fab-menu hover:bg-slate-800 transition">
+            <i id="fabIcon" class="fa-solid fa-plus"></i>
+        </button>
     </div>
 
-    <!-- MODALS -->
+    <!-- 4. MODALS -->
     
     <!-- Login -->
-    <div id="loginModal" class="modal fixed inset-0 z-[60] bg-slate-900/80 backdrop-blur-sm flex items-center justify-center p-6 hidden">
-        <div class="bg-white w-full max-w-sm rounded-3xl p-8 shadow-2xl">
-            <h2 class="text-xl font-bold mb-4">Welcome</h2>
+    <div id="loginModal" class="modal fixed inset-0 z-[60] bg-slate-900/90 backdrop-blur-md flex items-center justify-center p-6 hidden">
+        <div class="bg-white w-full max-w-sm rounded-3xl p-8 shadow-2xl animate-fade-in">
+            <div class="text-center mb-8">
+                <div class="w-16 h-16 bg-emerald-100 text-emerald-600 rounded-2xl mx-auto flex items-center justify-center text-3xl mb-4"><i class="fa-solid fa-seedling"></i></div>
+                <h2 class="text-2xl font-bold text-slate-800">Baby Bloom</h2>
+            </div>
             <div class="space-y-4">
-                <select id="loginRole" class="w-full bg-slate-50 border p-3 rounded-xl"><option value="Educator">Educator</option><option value="Guardian">Guardian</option></select>
-                <input id="loginId" type="text" placeholder="Contact ID" class="w-full bg-slate-50 border p-3 rounded-xl font-mono text-sm">
-                <button onclick="App.login()" class="w-full bg-emerald-600 text-white py-4 rounded-xl font-bold">Access Dashboard</button>
+                <select id="loginRole" class="w-full bg-slate-50 border border-slate-200 p-3 rounded-xl font-bold text-slate-700"><option value="Educator">Educator</option><option value="Guardian">Guardian</option></select>
+                <input id="loginId" type="text" placeholder="Contact ID..." class="w-full bg-slate-50 border border-slate-200 p-3 rounded-xl font-mono text-sm">
+                <button onclick="App.login()" class="w-full bg-emerald-600 text-white py-4 rounded-xl font-bold shadow-lg shadow-emerald-200">Access Dashboard</button>
             </div>
         </div>
     </div>
 
-    <!-- Plan -->
+    <!-- Plan Modal -->
     <div id="planModal" class="modal fixed inset-0 z-[60] bg-white hidden flex flex-col animate-slide-up">
-        <div class="p-4 border-b flex justify-between items-center">
-            <h2 class="font-bold text-lg">New Plan</h2>
-            <button onclick="Modals.close()"><i class="fa-solid fa-times text-xl"></i></button>
+        <div class="p-4 border-b border-slate-100 flex justify-between items-center bg-white shadow-sm z-10">
+            <h2 class="font-bold text-lg text-slate-800">New Activity Plan</h2>
+            <button onclick="Modals.close()" class="w-8 h-8 flex items-center justify-center bg-slate-100 rounded-full text-slate-500"><i class="fa-solid fa-times"></i></button>
         </div>
-        <div id="milestoneAccordion" class="flex-1 overflow-y-auto p-4 space-y-3 bg-white"></div>
-        <div class="p-4 border-t"><button onclick="Modals.submitPlan()" id="submitPlanBtn" class="w-full bg-indigo-600 text-white py-4 rounded-xl font-bold">Generate Plan</button></div>
+        <div id="milestoneAccordion" class="flex-1 overflow-y-auto p-4 space-y-3 bg-white pb-24"></div>
+        <div class="p-4 border-t border-slate-100 bg-white fixed bottom-0 w-full md:w-[28rem]">
+            <button onclick="Modals.submitPlan()" id="submitPlanBtn" class="w-full bg-indigo-600 text-white py-4 rounded-xl font-bold shadow-lg">Generate Plan</button>
+        </div>
     </div>
 
-    <!-- DETAIL MODAL (NEW) -->
+    <!-- ACTIVITY DETAIL (The Recipe) -->
     <div id="activityDetailModal" class="modal fixed inset-0 z-[60] bg-white hidden flex flex-col animate-slide-up">
         <div class="p-4 border-b border-slate-100 flex justify-between items-start bg-white z-10 shadow-sm">
             <div class="pr-4">
                 <h2 id="detailTitle" class="font-bold text-xl text-slate-800 leading-tight mb-1">Title</h2>
                 <p id="detailRec" class="text-xs text-indigo-600 font-bold uppercase tracking-wide">Rec</p>
             </div>
-            <button onclick="Modals.close()" class="w-8 h-8 flex items-center justify-center bg-slate-100 rounded-full text-slate-500 hover:bg-slate-200 shrink-0"><i class="fa-solid fa-times"></i></button>
+            <button onclick="Modals.close()" class="w-8 h-8 flex items-center justify-center bg-slate-100 rounded-full text-slate-500 shrink-0"><i class="fa-solid fa-times"></i></button>
         </div>
-        <div class="flex-1 overflow-y-auto p-5 bg-slate-50 space-y-4">
+        <div class="flex-1 overflow-y-auto p-5 bg-slate-50 space-y-4 pb-32">
             <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-100"><p id="detailDesc" class="text-sm text-slate-600 leading-relaxed"></p></div>
             <div id="detailAccordions" class="space-y-3"></div>
         </div>
-        <div class="p-4 border-t border-slate-100 bg-white">
-            <button onclick="ActivityView.startReport()" class="w-full bg-indigo-600 text-white py-4 rounded-xl font-bold shadow-lg shadow-indigo-200 hover:bg-indigo-700 transition flex items-center justify-center gap-2"><i class="fa-solid fa-clipboard-check"></i> Complete & Report</button>
+        <!-- Sticky Footer -->
+        <div class="p-4 border-t border-slate-100 bg-white fixed bottom-0 w-full md:w-[28rem] z-20">
+            <button onclick="ActivityView.startReport()" class="w-full bg-emerald-600 text-white py-4 rounded-xl font-bold shadow-lg shadow-emerald-200 flex items-center justify-center gap-2"><i class="fa-solid fa-clipboard-check"></i> Complete & Report</button>
         </div>
     </div>
 
-    <!-- Review Modal -->
-    <div id="reviewModal" class="modal fixed inset-0 z-[60] bg-white hidden flex flex-col animate-slide-up">
-        <div class="p-4 border-b flex justify-between items-center"><h2 class="font-bold text-lg">Activity Report</h2><button onclick="Modals.close()"><i class="fa-solid fa-times text-xl"></i></button></div>
-        <div class="flex-1 overflow-y-auto p-6 bg-white">
-            <h3 id="reviewTitle" class="font-bold text-xl mb-2"></h3>
-            <p id="reviewDesc" class="text-sm text-slate-500 mb-8"></p>
-            <div id="reviewObjectives" class="space-y-6"></div>
-            <textarea id="reviewNote" class="w-full bg-slate-50 border p-4 rounded-xl text-sm h-32 mt-6" placeholder="Notes..."></textarea>
-        </div>
-        <div class="p-4 border-t"><button onclick="ActivityView.submitReport()" class="w-full bg-emerald-600 text-white py-4 rounded-xl font-bold">Complete Activity</button></div>
-    </div>
+    <!-- REVIEW DRAWER (Updated to slide from bottom) -->
+    <div id="reviewModal" class="modal fixed inset-0 z-[70] bg-slate-900/50 hidden flex items-end justify-center backdrop-blur-sm">
+        <div class="bg-white w-full max-w-md rounded-t-3xl p-6 shadow-2xl animate-slide-up h-[85vh] flex flex-col">
+            <!-- Drawer Handle -->
+            <div class="w-full flex justify-center mb-4" onclick="Modals.close()">
+                <div class="w-12 h-1.5 bg-slate-200 rounded-full cursor-pointer"></div>
+            </div>
+            
+            <div class="flex justify-between items-center mb-4 border-b border-slate-100 pb-2">
+                <h2 class="font-bold text-lg text-slate-800">Activity Report</h2>
+                <button onclick="Modals.close()" class="text-slate-400"><i class="fa-solid fa-times text-xl"></i></button>
+            </div>
 
-    <!-- Log Modal -->
-    <div id="logModal" class="modal fixed inset-0 z-[60] bg-slate-900/50 hidden flex items-end justify-center">
-        <div class="bg-white w-full max-w-md rounded-t-3xl p-6 shadow-2xl animate-slide-up">
-            <div class="flex justify-between items-center mb-6"><h2 class="text-lg font-bold">Log Observation</h2><button onclick="Modals.close()"><i class="fa-solid fa-times"></i></button></div>
-            <div class="space-y-5">
-                <select id="logDomain" class="w-full bg-slate-50 border p-3 rounded-xl text-sm"></select>
-                <select id="logMilestone" class="w-full bg-slate-50 border p-3 rounded-xl text-sm truncate"></select>
-                <div class="grid grid-cols-5 gap-2 text-center">
-                    <button class="log-rate-btn p-3 rounded-xl border" onclick="Modals.setRating(0)">0</button>
-                    <button class="log-rate-btn p-3 rounded-xl border" onclick="Modals.setRating(1)">1</button>
-                    <button class="log-rate-btn p-3 rounded-xl border" onclick="Modals.setRating(2)">2</button>
-                    <button class="log-rate-btn p-3 rounded-xl border" onclick="Modals.setRating(3)">3</button>
-                    <button class="log-rate-btn p-3 rounded-xl border" onclick="Modals.setRating(4)">4</button>
+            <div class="flex-1 overflow-y-auto space-y-6 pb-6 pr-2">
+                <div>
+                    <h3 id="reviewTitle" class="font-bold text-slate-800 leading-tight mb-1"></h3>
+                    <p class="text-xs text-slate-400">Rate the child's performance</p>
                 </div>
-                <textarea id="logNote" class="w-full bg-slate-50 border p-3 rounded-xl text-sm h-24" placeholder="Details..."></textarea>
-                <button onclick="Modals.submitLog()" class="w-full bg-emerald-600 text-white py-4 rounded-xl font-bold">Save Record</button>
+                
+                <div id="reviewObjectives" class="space-y-6"></div>
+                
+                <div class="space-y-2">
+                    <label class="text-xs font-bold text-slate-400 uppercase ml-1">Notes</label>
+                    <textarea id="reviewNote" class="w-full bg-slate-50 border border-slate-200 p-4 rounded-xl text-sm h-24 resize-none focus:bg-white transition" placeholder="How did it go?"></textarea>
+                </div>
+            </div>
+            
+            <div class="pt-4 border-t border-slate-100">
+                <button onclick="ActivityView.submitReport()" class="w-full bg-emerald-600 text-white py-4 rounded-xl font-bold shadow-lg shadow-emerald-200">Submit Report</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- LOG DRAWER -->
+    <div id="logModal" class="modal fixed inset-0 z-[70] bg-slate-900/50 hidden flex items-end justify-center backdrop-blur-sm">
+        <div class="bg-white w-full max-w-md rounded-t-3xl p-6 shadow-2xl animate-slide-up">
+            <div class="w-full flex justify-center mb-4" onclick="Modals.close()"><div class="w-12 h-1.5 bg-slate-200 rounded-full"></div></div>
+            <div class="flex justify-between items-center mb-6"><h2 class="text-lg font-bold text-slate-800">Log Observation</h2></div>
+            <div class="space-y-5">
+                <select id="logDomain" class="w-full bg-slate-50 border border-slate-200 p-3 rounded-xl text-sm font-bold text-slate-700"></select>
+                <select id="logMilestone" class="w-full bg-slate-50 border border-slate-200 p-3 rounded-xl text-sm text-slate-600 truncate"></select>
+                <div class="grid grid-cols-5 gap-2 text-center">
+                    <button class="log-rate-btn p-3 rounded-xl border border-slate-200 text-sm font-bold text-slate-400" onclick="Modals.setRating(0)">0</button>
+                    <button class="log-rate-btn p-3 rounded-xl border border-slate-200 text-sm font-bold text-slate-400" onclick="Modals.setRating(1)">1</button>
+                    <button class="log-rate-btn p-3 rounded-xl border border-slate-200 text-sm font-bold text-slate-400" onclick="Modals.setRating(2)">2</button>
+                    <button class="log-rate-btn p-3 rounded-xl border border-slate-200 text-sm font-bold text-slate-400" onclick="Modals.setRating(3)">3</button>
+                    <button class="log-rate-btn p-3 rounded-xl border border-slate-200 text-sm font-bold text-slate-400" onclick="Modals.setRating(4)">4</button>
+                </div>
+                <textarea id="logNote" class="w-full bg-slate-50 border border-slate-200 p-3 rounded-xl text-sm h-24 resize-none" placeholder="Details..."></textarea>
+                <button onclick="Modals.submitLog()" class="w-full bg-emerald-600 text-white py-4 rounded-xl font-bold shadow-lg shadow-emerald-200">Save Record</button>
             </div>
         </div>
     </div>
@@ -126,14 +170,11 @@
     <script src="js/core/config.js"></script>
     <script src="js/core/utils.js"></script>
     <script src="js/core/api.js"></script>
-    
     <script src="js/components/fab.js"></script>
     <script src="js/components/modals.js"></script>
-    
     <script src="js/views/feed.js"></script>
     <script src="js/views/progress.js"></script>
     <script src="js/views/activity.js"></script>
-    
     <script src="js/core/router.js"></script>
     <script src="js/main.js"></script>
 </body>
