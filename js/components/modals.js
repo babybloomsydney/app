@@ -8,7 +8,7 @@ const Modals = {
         document.querySelectorAll('.modal').forEach(m => m.classList.add('hidden'));
         document.getElementById(name + 'Modal').classList.remove('hidden');
         
-        // Reset Wizard if opening Log
+        // Auto-Reset Wizard when opening Log
         if(name === 'log') LogWizard.init();
     },
     
@@ -16,15 +16,15 @@ const Modals = {
         document.querySelectorAll('.modal').forEach(m => m.classList.add('hidden'));
     },
 
-    // --- ACCORDION (Plan) ---
+    // --- PLANNER (Accordion) ---
     renderAccordion: () => {
         const c = document.getElementById('milestoneAccordion'); c.innerHTML = "";
         const g = Utils.groupLibrary(STATE.library);
         Object.keys(g).forEach((d, i) => {
-            let h = `<div class="border border-slate-200 rounded-xl bg-white overflow-hidden mb-2"><button onclick="Modals.toggleAcc('d${i}')" class="w-full text-left p-4 font-bold text-sm text-slate-700 flex justify-between bg-slate-50">${CONFIG.DOMAINS[d]}<i id="icon-d${i}" class="fa-solid fa-chevron-down transition-transform"></i></button><div id="d${i}" class="accordion-content px-4">`;
+            let h = `<div class="border border-slate-200 rounded-xl bg-white overflow-hidden mb-2"><button onclick="Modals.toggleAcc('d${i}')" class="w-full text-left p-4 font-bold text-sm text-slate-700 flex justify-between items-center bg-white hover:bg-slate-50 transition">${CONFIG.DOMAINS[d]}<i id="icon-d${i}" class="fa-solid fa-chevron-down transition-transform"></i></button><div id="d${i}" class="accordion-content px-4 bg-slate-50 border-t border-slate-100">`;
             Object.keys(g[d]).forEach(a => {
-                h += `<div class="py-2"><p class="text-xs font-bold text-slate-400 uppercase">${a}</p>`;
-                g[d][a].forEach(m => h += `<label class="flex gap-3 py-2 items-start"><input type="checkbox" value="${m.id}" onchange="Modals.toggleObj(this)" class="mt-1"><span class="text-xs text-slate-600">${m.desc}</span></label>`);
+                h += `<div class="py-3 border-b border-slate-200 last:border-0"><p class="text-[10px] font-bold text-slate-400 uppercase mb-2 tracking-wide">${a}</p>`;
+                g[d][a].forEach(m => h += `<label class="flex gap-3 py-2 items-start cursor-pointer hover:bg-slate-100 rounded-lg px-2 -mx-2 transition"><input type="checkbox" value="${m.id}" onchange="Modals.toggleObj(this)" class="mt-1 accent-indigo-600 w-4 h-4"><span class="text-xs text-slate-600 leading-snug">${m.desc}</span></label>`);
                 h += `</div>`;
             });
             c.innerHTML += h + `</div></div>`;
@@ -35,9 +35,10 @@ const Modals = {
 
     submitPlan: async () => {
         if(STATE.selectedObjectives.length===0) return alert("Select milestones");
-        document.getElementById('submitPlanBtn').innerText = "Processing...";
+        const btn = document.getElementById('submitPlanBtn');
+        btn.innerText = "Processing..."; btn.disabled = true;
         await API.generatePlan(STATE.child.childId, STATE.selectedObjectives);
-        document.getElementById('submitPlanBtn').innerText = "Generate Plan";
+        btn.innerText = "Generate Plan"; btn.disabled = false;
         Modals.close(); Router.navigate('feed'); STATE.selectedObjectives = [];
     }
 };
@@ -57,13 +58,14 @@ const LogWizard = {
         LogWizard.state = { step: 1, domain: null };
         document.getElementById('logNote').value = ""; // Clear input
         
-        // Render Domains List once (Performance)
+        // Render Domains List once (Performance optimization)
         const container = document.getElementById('domainListContainer');
         if (container.innerHTML === "") {
             Object.keys(CONFIG.DOMAINS).forEach(code => {
                 container.innerHTML += `
-                <button onclick="LogWizard.selectType('${code}')" class="w-full text-left p-4 rounded-xl bg-slate-50 border border-slate-100 hover:bg-indigo-50 hover:border-indigo-200 transition font-bold text-slate-700 text-sm flex items-center gap-3">
-                    <span class="w-2 h-2 rounded-full bg-indigo-400"></span> ${CONFIG.DOMAINS[code]}
+                <button onclick="LogWizard.selectType('${code}')" class="w-full text-left p-4 rounded-xl bg-slate-50 border border-slate-100 hover:bg-indigo-50 hover:border-indigo-200 transition font-bold text-slate-700 text-sm flex items-center gap-3 group">
+                    <span class="w-8 h-8 rounded-full bg-white text-indigo-500 border border-slate-100 flex items-center justify-center text-xs shadow-sm group-hover:bg-indigo-500 group-hover:text-white transition"><i class="fa-solid fa-chevron-right"></i></span>
+                    ${CONFIG.DOMAINS[code]}
                 </button>`;
             });
         }
@@ -84,7 +86,7 @@ const LogWizard = {
 
     back: () => {
         if(LogWizard.state.step === 3) {
-            // If we came from Specific (Step 2), go back to 2. If General (Step 1), go back to 1.
+            // If came from Specific (Step 2), go back to 2. If General (Step 1), go back to 1.
             if(LogWizard.state.domain === "General") LogWizard.state.step = 1;
             else LogWizard.state.step = 2;
         } else if(LogWizard.state.step === 2) {
@@ -122,8 +124,8 @@ const LogWizard = {
             
             badge.innerText = dName;
             badge.className = dCode === "General" 
-                ? "inline-block px-3 py-1 bg-slate-100 text-slate-600 rounded-full text-xs font-bold uppercase tracking-wide"
-                : "inline-block px-3 py-1 bg-indigo-100 text-indigo-700 rounded-full text-xs font-bold uppercase tracking-wide";
+                ? "inline-block px-3 py-1 bg-slate-100 text-slate-600 rounded-full text-xs font-bold uppercase tracking-wide border border-slate-200"
+                : "inline-block px-3 py-1 bg-indigo-50 text-indigo-700 rounded-full text-xs font-bold uppercase tracking-wide border border-indigo-100";
         }
     },
 
@@ -136,12 +138,12 @@ const LogWizard = {
         btn.innerText = "Saving...";
         btn.disabled = true;
 
-        // Send to Backend (Score/MilestoneID are null for Ad-Hoc v2)
+        // Send to Backend
         await API.logObservation(
             STATE.child.childId, 
             LogWizard.state.domain, 
-            null, // MilestoneID
-            null, // Score
+            null, // MilestoneID (Null for Ad-Hoc v2)
+            null, // Score (Null for Ad-Hoc v2)
             note
         );
 
@@ -153,21 +155,3 @@ const LogWizard = {
         if (typeof FeedView !== 'undefined') FeedView.render();
     }
 };
-```
-
----
-
-### Step 3: Check `js/views/feed.js`
-*Ensure your Feed renderer handles "General" domains cleanly. The current code mostly does, but let's make sure it handles the case where `CONFIG.DOMAINS` lookup might return undefined for "General".*
-
-In `js/views/feed.js`, locate the **OBSERVATION** block and update the `dName` logic:
-
-```javascript
-// --- 3. OBSERVATION CARD ---
-if (item.type === "OBSERVATION") {
-    const dCode = item.data.domain;
-    // Fix: Handle "General" elegantly
-    const dName = dCode === "General" ? "General Update" : (CONFIG.DOMAINS[dCode] || dCode);
-    
-    // ... rest of code ...
-}
