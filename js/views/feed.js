@@ -1,6 +1,7 @@
 const FeedView = {
     render: async () => {
         const c = document.getElementById('feedContainer');
+        // Only show loader if empty
         if(c.innerHTML === "") c.innerHTML = '<div class="text-center py-10 text-gray-400"><i class="fa-solid fa-circle-notch fa-spin text-2xl"></i></div>';
         
         const res = await API.fetchFeed(STATE.child.childId);
@@ -39,7 +40,7 @@ const FeedView = {
             </div>`;
         }
         
-        // --- 2. REPORT CARD (Clean & Consolidated) ---
+        // --- 2. REPORT CARD (Linked) ---
         if (item.type === "REPORT") {
             // A. Find Parent Activity Title
             const parentId = item.refs ? item.refs[0] : null;
@@ -59,16 +60,19 @@ const FeedView = {
                     <div class="space-y-2">`;
                 
                 progressItem.data.updates.forEach(u => {
+                    const dom = Utils.getMilestoneDomain(u.id);
                     progressHtml += `
                     <div class="flex justify-between items-center">
-                        <span class="text-xs text-slate-600 truncate w-3/4">${Utils.getMilestoneDesc(u.id)}</span>
-                        <span class="text-[10px] font-bold text-emerald-600 bg-emerald-50 px-2 py-1 rounded">${Utils.getScoreLabel(u.score)}</span>
+                        <div class="flex items-center gap-2 truncate w-3/4">
+                            <span class="text-[10px] bg-slate-100 text-slate-500 px-1 rounded font-bold">${dom}</span>
+                            <span class="text-xs text-slate-600 truncate">${Utils.getMilestoneDesc(u.id)}</span>
+                        </div>
+                        <span class="text-[10px] font-bold text-emerald-600 bg-emerald-50 px-2 py-1 rounded shrink-0">${Utils.getScoreLabel(u.score)}</span>
                     </div>`;
                 });
                 progressHtml += `</div></div>`;
             }
 
-            // C. Render (Updated: No Referencing label, No grey box for notes)
             return `
             <div class="feed-item bg-white p-5 rounded-2xl shadow-sm border border-slate-100 mb-4">
                 <div class="flex justify-between items-center mb-1">
@@ -81,7 +85,7 @@ const FeedView = {
                 
                 <h3 class="font-bold text-slate-800 text-lg mb-2 leading-tight">${parentTitle}</h3>
 
-                ${item.data.feedback ? `<p class="text-sm text-slate-600 leading-relaxed mb-3">"${item.data.feedback}"</p>` : ''}
+                ${item.data.feedback ? `<p class="text-sm text-slate-600 leading-relaxed mb-3">${item.data.feedback}</p>` : ''}
 
                 ${progressHtml}
 
@@ -94,7 +98,6 @@ const FeedView = {
             const rawDomain = item.data.domain || "General";
             let displayDomains = rawDomain;
             
-            // Format Tags
             if (rawDomain !== "General" && rawDomain.includes(",")) {
                 displayDomains = rawDomain.split(',').map(d => `<span class="bg-purple-50 text-purple-700 px-2 py-0.5 rounded mr-1">${CONFIG.DOMAINS[d.trim()] || d.trim()}</span>`).join("");
             } else if (rawDomain !== "General") {
@@ -102,6 +105,9 @@ const FeedView = {
             } else {
                 displayDomains = `<span class="bg-slate-100 text-slate-600 px-2 py-0.5 rounded">General</span>`;
             }
+            
+            const mDesc = item.data.milestoneId ? Utils.getMilestoneDesc(item.data.milestoneId) : null;
+            const score = item.data.score !== null ? Utils.getScoreLabel(item.data.score) : null;
 
             return `
             <div class="feed-item bg-white p-5 rounded-2xl shadow-sm border border-slate-100 mb-4">
@@ -114,18 +120,34 @@ const FeedView = {
                 </div>
                 <div class="mb-3">
                     <div class="text-[10px] font-bold uppercase mb-2 flex flex-wrap gap-1">${displayDomains}</div>
-                    <p class="text-sm text-slate-600 leading-relaxed">"${item.data.note}"</p>
+                    ${mDesc ? `<p class="text-sm font-bold text-slate-800 mb-2">${mDesc}</p>` : ''}
+                    <p class="text-sm text-slate-600 leading-relaxed">${item.data.note}</p>
                 </div>
+                ${score ? `<div class="inline-flex items-center gap-2 px-3 py-1.5 bg-emerald-50 text-emerald-700 rounded-lg border border-emerald-100"><i class="fa-solid fa-chart-simple text-xs"></i><span class="text-xs font-bold uppercase">Achieved: ${score}</span></div>` : ''}
             </div>`;
         }
         
         // --- 4. PROGRESS CARD (Standalone) ---
         if (item.type === "PROGRESS") {
-            if(item.refs && item.refs.length > 0) return ""; // Hide duplicates linked to Reports
+            if(item.refs && item.refs.length > 0) return ""; 
             
+            // Build Note Section
+            const noteHtml = item.data.note ? `<div class="mb-3 pb-3 border-b border-slate-100"><p class="text-sm text-slate-600 italic">"${item.data.note}"</p></div>` : "";
+
+            // Build List
             let list = "";
             (item.data.updates||[]).forEach(u => {
-                list += `<div class="py-2 border-b border-slate-100 last:border-0"><div class="flex justify-between items-start"><div class="pr-2"><p class="text-xs font-bold text-slate-700 mt-1">${Utils.getMilestoneDesc(u.id)}</p></div><span class="text-[10px] font-bold text-emerald-600 bg-emerald-50 px-2 py-1 rounded shrink-0">${Utils.getScoreLabel(u.score)}</span></div></div>`;
+                const dom = Utils.getMilestoneDomain(u.id);
+                list += `
+                <div class="py-2 border-b border-slate-100 last:border-0">
+                    <div class="flex justify-between items-start">
+                        <div class="pr-2">
+                            <span class="text-[10px] bg-slate-100 text-slate-500 px-1 rounded font-bold mr-1">${dom}</span>
+                            <span class="text-xs font-bold text-slate-700">${Utils.getMilestoneDesc(u.id)}</span>
+                        </div>
+                        <span class="text-[10px] font-bold text-emerald-600 bg-emerald-50 px-2 py-1 rounded shrink-0">${Utils.getScoreLabel(u.score)}</span>
+                    </div>
+                </div>`;
             });
             
             return `
@@ -137,6 +159,7 @@ const FeedView = {
                     </div>
                     <span class="text-[10px] text-gray-400">${date}</span>
                 </div>
+                ${noteHtml}
                 <div class="bg-white rounded-xl border border-slate-100 px-3">${list}</div>
             </div>`;
         }
