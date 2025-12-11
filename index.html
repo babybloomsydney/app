@@ -81,19 +81,57 @@
         </div>
     </div>
 
-    <!-- Plan Modal -->
-    <div id="planModal" class="modal fixed inset-0 z-[60] bg-white hidden flex flex-col animate-slide-up">
-        <div class="p-4 border-b border-slate-100 flex justify-between items-center bg-white shadow-sm z-10">
-            <h2 class="font-bold text-lg text-slate-800">New Activity Plan</h2>
-            <button onclick="Modals.close()" class="w-8 h-8 flex items-center justify-center bg-slate-100 rounded-full text-slate-500 hover:bg-slate-200"><i class="fa-solid fa-times"></i></button>
-        </div>
-        <div id="milestoneAccordion" class="flex-1 overflow-y-auto p-4 space-y-3 bg-white pb-24"></div>
-        <div class="p-4 border-t border-slate-100 bg-white fixed bottom-0 w-full md:w-[28rem]">
-            <button onclick="Modals.submitPlan()" id="submitPlanBtn" class="w-full bg-indigo-600 text-white py-4 rounded-xl font-bold shadow-lg">Generate Plan</button>
+    <!-- PLAN ACTIVITY WIZARD (Updated Layout) -->
+    <div id="planModal" class="modal fixed inset-0 z-[70] bg-slate-900/50 hidden flex items-end justify-center backdrop-blur-sm">
+        <div class="bg-white w-full max-w-md rounded-t-3xl p-6 shadow-2xl animate-slide-up h-[85vh] flex flex-col">
+            
+            <!-- Handle -->
+            <div class="w-full flex justify-center mb-2" onclick="Modals.close()">
+                <div class="w-12 h-1.5 bg-slate-200 rounded-full cursor-pointer"></div>
+            </div>
+
+            <!-- Header -->
+            <div class="flex justify-between items-center mb-4 border-b border-slate-50 pb-2">
+                <div>
+                    <h2 class="text-xl font-bold text-slate-800">Plan Activity</h2>
+                    <p class="text-xs text-slate-400">Select up to 3 objectives</p>
+                </div>
+                <button onclick="Modals.close()" class="w-8 h-8 flex items-center justify-center bg-slate-100 rounded-full text-slate-400 hover:text-slate-600"><i class="fa-solid fa-times"></i></button>
+            </div>
+
+            <!-- Content Area -->
+            <div class="flex-1 overflow-y-auto pb-24"> 
+                
+                <!-- SELECTED TAGS AREA (Always Visible) -->
+                <div id="planActiveTags" class="flex flex-col gap-2 mb-6">
+                    <!-- Populated by JS -->
+                </div>
+
+                <!-- ACCORDION SELECTOR (Hidden if Max 3 selected) -->
+                <div id="planSelectorArea" class="space-y-2">
+                    <p class="text-xs font-bold text-slate-400 uppercase mb-2 ml-1">Browse Domains</p>
+                    <div id="milestoneAccordion" class="space-y-2"></div>
+                </div>
+
+                <!-- MAX LIMIT MESSAGE -->
+                <div id="planMaxLimitMsg" class="hidden text-center py-10 animate-fade-in">
+                    <div class="w-16 h-16 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto mb-3 text-2xl shadow-sm"><i class="fa-solid fa-check"></i></div>
+                    <p class="text-slate-700 font-bold text-lg">Ready to Generate!</p>
+                    <p class="text-xs text-slate-400">You have selected the maximum of 3 objectives.</p>
+                </div>
+
+            </div>
+
+            <!-- FOOTER BUTTON (Hidden until 1+ selected) -->
+            <div id="planFooter" class="hidden pt-4 border-t border-slate-100">
+                <button onclick="PlanWizard.submit()" id="submitPlanBtn" class="w-full bg-indigo-600 text-white py-4 rounded-xl font-bold shadow-lg shadow-indigo-200 hover:bg-indigo-700 transition">
+                    Create Activity
+                </button>
+            </div>
         </div>
     </div>
 
-    <!-- Activity Detail Modal -->
+    <!-- ACTIVITY DETAIL -->
     <div id="activityDetailModal" class="modal fixed inset-0 z-[60] bg-white hidden flex flex-col animate-slide-up">
         <div class="p-4 border-b border-slate-100 flex justify-between items-start bg-white z-10 shadow-sm">
             <div class="pr-4">
@@ -111,7 +149,7 @@
         </div>
     </div>
 
-    <!-- Review Drawer -->
+    <!-- REVIEW DRAWER -->
     <div id="reviewModal" class="modal fixed inset-0 z-[70] bg-slate-900/50 hidden flex items-end justify-center backdrop-blur-sm">
         <div class="bg-white w-full max-w-md rounded-t-3xl p-6 shadow-2xl animate-slide-up h-[85vh] flex flex-col">
             <div class="w-full flex justify-center mb-4" onclick="Modals.close()"><div class="w-12 h-1.5 bg-slate-200 rounded-full cursor-pointer"></div></div>
@@ -130,50 +168,33 @@
         </div>
     </div>
 
-    <!-- LOG DRAWER (Updated Multi-Select Wizard) -->
+    <!-- LOG DRAWER (Wizard) -->
     <div id="logModal" class="modal fixed inset-0 z-[70] bg-slate-900/50 hidden flex items-end justify-center backdrop-blur-sm">
         <div class="bg-white w-full max-w-md rounded-t-3xl p-6 shadow-2xl animate-slide-up h-[85vh] flex flex-col">
-            
-            <!-- Handle -->
-            <div class="w-full flex justify-center mb-2" onclick="Modals.close()">
-                <div class="w-12 h-1.5 bg-slate-200 rounded-full cursor-pointer"></div>
-            </div>
-
-            <!-- Header -->
+            <div class="w-full flex justify-center mb-2" onclick="Modals.close()"><div class="w-12 h-1.5 bg-slate-200 rounded-full cursor-pointer"></div></div>
             <div class="flex justify-between items-center mb-6 border-b border-slate-50 pb-4">
                 <div class="flex items-center gap-3">
-                    <button id="logBackBtn" onclick="LogWizard.back()" class="hidden w-8 h-8 rounded-full bg-slate-100 text-slate-500 flex items-center justify-center hover:bg-slate-200 transition">
-                        <i class="fa-solid fa-arrow-left"></i>
-                    </button>
+                    <button id="logBackBtn" onclick="LogWizard.back()" class="hidden w-8 h-8 rounded-full bg-slate-100 text-slate-500 flex items-center justify-center hover:bg-slate-200 transition"><i class="fa-solid fa-arrow-left"></i></button>
                     <h2 id="logTitle" class="text-xl font-bold text-slate-800">New Observation</h2>
                 </div>
                 <button onclick="Modals.close()" class="w-8 h-8 flex items-center justify-center bg-slate-100 rounded-full text-slate-400 hover:text-slate-600"><i class="fa-solid fa-times"></i></button>
             </div>
-
-            <!-- Wizard Content -->
             <div class="flex-1 overflow-y-auto">
-                
-                <!-- STEP 1: CHOICE -->
                 <div id="logStep1" class="space-y-4">
                     <button onclick="LogWizard.goGeneral()" class="w-full bg-slate-50 border-2 border-slate-100 p-6 rounded-2xl flex items-center gap-4 hover:border-emerald-500 hover:bg-emerald-50 transition group text-left">
                         <div class="w-12 h-12 rounded-full bg-white shadow-sm flex items-center justify-center text-xl text-slate-400 group-hover:text-emerald-500 border border-slate-100"><i class="fa-solid fa-comment-dots"></i></div>
                         <div><h3 class="font-bold text-lg text-slate-700 group-hover:text-emerald-800">General</h3><p class="text-xs text-slate-400 group-hover:text-emerald-600">Daily update, mood, or activity.</p></div>
                     </button>
-
                     <button onclick="LogWizard.goSpecific()" class="w-full bg-slate-50 border-2 border-slate-100 p-6 rounded-2xl flex items-center gap-4 hover:border-indigo-500 hover:bg-indigo-50 transition group text-left">
                         <div class="w-12 h-12 rounded-full bg-white shadow-sm flex items-center justify-center text-xl text-slate-400 group-hover:text-indigo-500 border border-slate-100"><i class="fa-solid fa-bullseye"></i></div>
                         <div><h3 class="font-bold text-lg text-slate-700 group-hover:text-indigo-800">Specific</h3><p class="text-xs text-slate-400 group-hover:text-indigo-600">Link to Areas of Development.</p></div>
                     </button>
                 </div>
-
-                <!-- STEP 2: GENERAL INPUT -->
                 <div id="logStepGeneral" class="hidden flex flex-col h-full">
                     <div class="mb-4"><span class="inline-block px-3 py-1 bg-slate-100 text-slate-600 rounded-full text-xs font-bold uppercase tracking-wide border border-slate-200">General</span></div>
                     <textarea id="logNoteGeneral" class="w-full flex-1 bg-slate-50 border-2 border-slate-100 p-4 rounded-2xl text-base resize-none focus:bg-white focus:border-emerald-500 transition" placeholder="Write Observation..."></textarea>
                     <div class="mt-4 pb-4"><button onclick="LogWizard.submit()" class="w-full bg-emerald-600 text-white py-4 rounded-xl font-bold shadow-lg">Save Observation</button></div>
                 </div>
-
-                <!-- STEP 2: SPECIFIC INPUT (Multi-Select) -->
                 <div id="logStepSpecific" class="hidden flex flex-col h-full">
                     <div class="mb-4 space-y-4">
                         <div>
@@ -182,16 +203,13 @@
                         </div>
                         <div id="activeTags" class="flex flex-wrap gap-2 min-h-[40px]"></div>
                     </div>
-
                     <div id="specificInputArea" class="hidden flex-1 flex flex-col">
                         <label class="text-xs font-bold text-slate-400 uppercase ml-1 mb-1">Write Observation</label>
                         <textarea id="logNoteSpecific" class="w-full flex-1 bg-slate-50 border-2 border-slate-100 p-4 rounded-2xl text-base resize-none focus:bg-white focus:border-indigo-500 transition" placeholder="Details..."></textarea>
                         <div class="mt-4 pb-4"><button onclick="LogWizard.submit()" class="w-full bg-emerald-600 text-white py-4 rounded-xl font-bold shadow-lg">Save Observation</button></div>
                     </div>
-                    
                     <div id="specificHint" class="flex-1 flex items-center justify-center text-slate-400 text-sm italic">Select an Area above to start writing.</div>
                 </div>
-
             </div>
         </div>
     </div>
