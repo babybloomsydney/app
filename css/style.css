@@ -1,8 +1,8 @@
 /* BABY BLOOM STYLESHEET */
 
 body {
-    background-color: #f8fafc;
-    padding-bottom: 100px;
+    background-color: #f8fafc; /* Slate-50 */
+    padding-bottom: 100px; /* Space for FAB */
     -webkit-tap-highlight-color: transparent;
 }
 
@@ -19,10 +19,10 @@ body {
     to { transform: translateY(0); } 
 }
 
-/* Success Pulse for Submit Button */
+/* Success Pulse */
 @keyframes pulseGreen {
     0% { transform: scale(1); }
-    50% { transform: scale(1.05); }
+    50% { transform: scale(1.02); }
     100% { transform: scale(1); }
 }
 .btn-success {
@@ -32,7 +32,7 @@ body {
     animation: pulseGreen 0.3s ease-in-out;
 }
 
-/* --- COMPONENT STYLES --- */
+/* --- COMPONENTS --- */
 
 /* Accordion Logic */
 .accordion-content {
@@ -46,12 +46,12 @@ body {
 .rotate-180 { transform: rotate(180deg); }
 .transition-transform { transition: transform 0.3s; }
 
-/* Sticky Headers for Progress Accordion */
+/* Sticky Headers */
 .sticky-header {
     position: sticky;
     top: 0;
-    z-index: 20; /* Above the content */
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05); /* Slight shadow when sticking */
+    z-index: 20;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
 }
 
 /* Tabs */
