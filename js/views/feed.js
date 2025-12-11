@@ -1,7 +1,6 @@
 const FeedView = {
     render: async () => {
         const c = document.getElementById('feedContainer');
-        // Only show loader if empty
         if(c.innerHTML === "") c.innerHTML = '<div class="text-center py-10 text-gray-400"><i class="fa-solid fa-circle-notch fa-spin text-2xl"></i></div>';
         
         const res = await API.fetchFeed(STATE.child.childId);
@@ -28,7 +27,7 @@ const FeedView = {
             if(isPending) return `<div class="feed-item bg-white p-5 rounded-2xl shadow-sm border border-slate-100 mb-4 opacity-70"><div class="flex items-center gap-2 text-indigo-500 font-bold text-xs mb-2"><i class="fa-solid fa-circle-notch fa-spin"></i> GENERATING...</div><h3 class="font-bold text-slate-800">Planning Activity...</h3></div>`;
 
             return `
-            <div class="feed-item bg-white p-5 rounded-2xl shadow-sm border border-slate-100 mb-4 relative overflow-hidden">
+            <div class="feed-item bg-white p-5 rounded-2xl shadow-sm border border-slate-100 mb-4 relative overflow-hidden group">
                 <div class="flex justify-between items-center mb-2">
                     <span class="text-[10px] font-bold text-indigo-500 uppercase tracking-wide">Activity Plan</span>
                     <span class="text-[10px] text-gray-400">${date}</span>
@@ -40,31 +39,54 @@ const FeedView = {
             </div>`;
         }
         
-        // --- 2. REPORT CARD (Linked) ---
+        // --- 2. REPORT CARD (Consolidated) ---
         if (item.type === "REPORT") {
+            // A. Find Parent Activity Title
             const parentId = item.refs ? item.refs[0] : null;
-            let parentTitle = "Unknown Activity";
+            let parentTitle = "Activity Report";
             if(parentId) {
                 const p = STATE.feed.find(x => x.id === parentId);
                 if(p) parentTitle = (p.data.activityJson?.creativeName) || p.title;
             }
+
+            // B. Find Associated Progress (Child of this Report)
+            // We look for a PROGRESS item that references THIS report ID
+            const progressItem = STATE.feed.find(x => x.type === "PROGRESS" && x.refs && x.refs.includes(item.id));
+            let progressHtml = "";
+            
+            if (progressItem && progressItem.data.updates) {
+                progressHtml = `<div class="mt-4 pt-3 border-t border-slate-100">
+                    <p class="text-[10px] font-bold text-emerald-600 uppercase mb-2">Progress Update</p>
+                    <div class="space-y-2">`;
+                
+                progressItem.data.updates.forEach(u => {
+                    progressHtml += `
+                    <div class="flex justify-between items-center">
+                        <span class="text-xs text-slate-600 truncate w-3/4">${Utils.getMilestoneDesc(u.id)}</span>
+                        <span class="text-[10px] font-bold text-emerald-600 bg-emerald-50 px-2 py-1 rounded">${Utils.getScoreLabel(u.score)}</span>
+                    </div>`;
+                });
+                progressHtml += `</div></div>`;
+            }
+
+            // C. Render
             return `
             <div class="feed-item bg-white p-5 rounded-2xl shadow-sm border border-slate-100 mb-4">
-                <div class="flex justify-between items-center mb-3">
+                <div class="flex justify-between items-center mb-1">
                     <div class="flex items-center gap-2">
-                        <div class="w-6 h-6 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center text-xs"><i class="fa-solid fa-clipboard-check"></i></div>
-                        <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wide">Activity Completed</span>
+                        <div class="w-6 h-6 rounded-full bg-blue-50 text-blue-500 flex items-center justify-center text-xs"><i class="fa-solid fa-clipboard-check"></i></div>
+                        <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wide">Completed</span>
                     </div>
                     <span class="text-[10px] text-gray-400">${date}</span>
                 </div>
-                <div class="mb-4">
-                    <p class="text-xs text-slate-400 font-bold uppercase mb-1">Referencing</p>
-                    <p class="text-sm font-bold text-slate-800">${parentTitle}</p>
-                </div>
-                <div class="bg-slate-50 p-3 rounded-xl border border-slate-100 mb-4">
-                    <p class="text-sm text-slate-600 leading-relaxed">${item.data.feedback || "No notes."}</p>
-                </div>
-                ${parentId?`<button onclick="ActivityView.open('${parentId}')" class="text-xs font-bold text-blue-600 hover:underline flex items-center gap-1">View Original Activity <i class="fa-solid fa-arrow-right"></i></button>`:''}
+                
+                <h3 class="font-bold text-slate-800 text-lg mb-2 leading-tight">${parentTitle}</h3>
+
+                ${item.data.feedback ? `<p class="text-sm text-slate-600 leading-relaxed mb-3">"${item.data.feedback}"</p>` : ''}
+
+                ${progressHtml}
+
+                ${parentId ? `<button onclick="ActivityView.open('${parentId}')" class="mt-4 text-xs font-bold text-blue-500 hover:text-blue-700 flex items-center gap-1 transition">View Activity Details <i class="fa-solid fa-chevron-right text-[10px]"></i></button>` : ''}
             </div>`;
         }
 
@@ -73,11 +95,12 @@ const FeedView = {
             const dName = CONFIG.DOMAINS[item.data.domain] || item.data.domain;
             const mDesc = item.data.milestoneId ? Utils.getMilestoneDesc(item.data.milestoneId) : null;
             const score = item.data.score !== null ? Utils.getScoreLabel(item.data.score) : null;
+            
             return `
             <div class="feed-item bg-white p-5 rounded-2xl shadow-sm border border-slate-100 mb-4">
                 <div class="flex justify-between items-center mb-3">
                     <div class="flex items-center gap-2">
-                        <div class="w-6 h-6 rounded-full bg-purple-100 text-purple-600 flex items-center justify-center text-xs"><i class="fa-solid fa-eye"></i></div>
+                        <div class="w-6 h-6 rounded-full bg-purple-50 text-purple-500 flex items-center justify-center text-xs"><i class="fa-solid fa-eye"></i></div>
                         <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wide">Observation</span>
                     </div>
                     <span class="text-[10px] text-gray-400">${date}</span>
@@ -85,14 +108,20 @@ const FeedView = {
                 <div class="mb-3">
                     <p class="text-xs text-purple-600 font-bold uppercase mb-1">${dName}</p>
                     ${mDesc?`<p class="text-sm font-bold text-slate-800 mb-2">${mDesc}</p>`:''}
-                    <p class="text-sm text-slate-600 leading-relaxed">${item.data.note}</p>
+                    <p class="text-sm text-slate-600 leading-relaxed">"${item.data.note}"</p>
                 </div>
                 ${score?`<div class="inline-flex items-center gap-2 px-3 py-1.5 bg-emerald-50 text-emerald-700 rounded-lg border border-emerald-100"><i class="fa-solid fa-chart-simple text-xs"></i><span class="text-xs font-bold uppercase">Achieved: ${score}</span></div>`:''}
             </div>`;
         }
         
-        // --- 4. PROGRESS CARD ---
+        // --- 4. PROGRESS CARD (Standalone) ---
+        // Only render if NOT linked to a report (to avoid duplicates in feed)
+        // If refs contains a REPORT id, we skip it because it's merged above.
         if (item.type === "PROGRESS") {
+            // Heuristic: If it has refs, it's likely a child of a Report. 
+            // If refs is empty, it's a Bulk Update from the "Assess" tab.
+            if(item.refs && item.refs.length > 0) return ""; 
+
             let list = "";
             (item.data.updates||[]).forEach(u => {
                 list += `<div class="py-2 border-b border-slate-100 last:border-0"><div class="flex justify-between items-start"><div class="pr-2"><p class="text-xs font-bold text-slate-700 mt-1">${Utils.getMilestoneDesc(u.id)}</p></div><span class="text-[10px] font-bold text-emerald-600 bg-emerald-50 px-2 py-1 rounded shrink-0">${Utils.getScoreLabel(u.score)}</span></div></div>`;
@@ -101,8 +130,8 @@ const FeedView = {
             <div class="feed-item bg-white p-5 rounded-2xl shadow-sm border border-slate-100 mb-4">
                 <div class="flex justify-between items-center mb-3">
                     <div class="flex items-center gap-2">
-                        <div class="w-6 h-6 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center text-xs"><i class="fa-solid fa-arrow-trend-up"></i></div>
-                        <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wide">Growth Update</span>
+                        <div class="w-6 h-6 rounded-full bg-emerald-50 text-emerald-500 flex items-center justify-center text-xs"><i class="fa-solid fa-arrow-trend-up"></i></div>
+                        <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wide">Manual Assessment</span>
                     </div>
                     <span class="text-[10px] text-gray-400">${date}</span>
                 </div>
