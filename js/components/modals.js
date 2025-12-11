@@ -1,22 +1,16 @@
 /**
  * MODALS & WIZARDS
- * Handles UI Overlays and the Log Wizard Logic.
  */
 
 const Modals = {
     open: (name) => {
         document.querySelectorAll('.modal').forEach(m => m.classList.add('hidden'));
         document.getElementById(name + 'Modal').classList.remove('hidden');
-        
-        // Auto-Reset Wizard when opening Log
         if(name === 'log') LogWizard.init();
     },
+    close: () => document.querySelectorAll('.modal').forEach(m => m.classList.add('hidden')),
     
-    close: () => {
-        document.querySelectorAll('.modal').forEach(m => m.classList.add('hidden'));
-    },
-
-    // --- PLANNER (Accordion) ---
+    // --- PLANNER ---
     renderAccordion: () => {
         const c = document.getElementById('milestoneAccordion'); c.innerHTML = "";
         const g = Utils.groupLibrary(STATE.library);
@@ -30,128 +24,131 @@ const Modals = {
             c.innerHTML += h + `</div></div>`;
         });
     },
-    toggleAcc: (id) => { document.getElementById(id).classList.toggle('accordion-open'); document.getElementById('icon-'+id).classList.toggle('rotate-180'); },
-    toggleObj: (chk) => { chk.checked ? STATE.selectedObjectives.push(chk.value) : STATE.selectedObjectives = STATE.selectedObjectives.filter(x => x !== chk.value); },
-
-    submitPlan: async () => {
-        if(STATE.selectedObjectives.length===0) return alert("Select milestones");
-        const btn = document.getElementById('submitPlanBtn');
-        btn.innerText = "Processing..."; btn.disabled = true;
-        await API.generatePlan(STATE.child.childId, STATE.selectedObjectives);
-        btn.innerText = "Generate Plan"; btn.disabled = false;
-        Modals.close(); Router.navigate('feed'); STATE.selectedObjectives = [];
-    }
+    toggleAcc:(id)=>{document.getElementById(id).classList.toggle('accordion-open');document.getElementById('icon-'+id).classList.toggle('rotate-180');},
+    toggleObj:(chk)=>{chk.checked?STATE.selectedObjectives.push(chk.value):STATE.selectedObjectives=STATE.selectedObjectives.filter(x=>x!==chk.value);},
+    submitPlan:async()=>{if(STATE.selectedObjectives.length===0)return alert("Select milestones");const btn=document.getElementById('submitPlanBtn');btn.innerText="Processing...";btn.disabled=true;await API.generatePlan(STATE.child.childId,STATE.selectedObjectives);btn.innerText="Generate Plan";btn.disabled=false;Modals.close();Router.navigate('feed');STATE.selectedObjectives=[];}
 };
 
 /**
- * LOG WIZARD CONTROLLER
- * Handles the Multi-step flow for Ad-Hoc Observations.
+ * LOG WIZARD (Multi-Select & Tagging)
  */
 const LogWizard = {
     state: {
-        step: 1,
-        domain: null
+        mode: null, 
+        domains: [] 
     },
 
     init: () => {
-        // Reset State
-        LogWizard.state = { step: 1, domain: null };
-        document.getElementById('logNote').value = ""; // Clear input
+        LogWizard.state = { mode: null, domains: [] };
+        document.getElementById('logNoteGeneral').value = "";
+        document.getElementById('logNoteSpecific').value = "";
         
-        // Render Domains List once (Performance optimization)
-        const container = document.getElementById('domainListContainer');
-        if (container.innerHTML === "") {
+        const sel = document.getElementById('logDomainSelect');
+        if (sel.innerHTML === "") {
+            sel.innerHTML = '<option value="">Select...</option>';
             Object.keys(CONFIG.DOMAINS).forEach(code => {
-                container.innerHTML += `
-                <button onclick="LogWizard.selectType('${code}')" class="w-full text-left p-4 rounded-xl bg-slate-50 border border-slate-100 hover:bg-indigo-50 hover:border-indigo-200 transition font-bold text-slate-700 text-sm flex items-center gap-3 group">
-                    <span class="w-8 h-8 rounded-full bg-white text-indigo-500 border border-slate-100 flex items-center justify-center text-xs shadow-sm group-hover:bg-indigo-500 group-hover:text-white transition"><i class="fa-solid fa-chevron-right"></i></span>
-                    ${CONFIG.DOMAINS[code]}
-                </button>`;
+                sel.innerHTML += `<option value="${code}">${CONFIG.DOMAINS[code]}</option>`;
             });
         }
-
-        LogWizard.render();
+        
+        LogWizard.showStep('logStep1');
+        document.getElementById('logBackBtn').classList.add('hidden');
+        document.getElementById('logTitle').innerText = "New Observation";
     },
 
-    goToDomains: () => {
-        LogWizard.state.step = 2;
-        LogWizard.render();
+    goGeneral: () => {
+        LogWizard.state.mode = 'General';
+        LogWizard.showStep('logStepGeneral');
+        document.getElementById('logBackBtn').classList.remove('hidden');
+        document.getElementById('logTitle').innerText = "General Entry";
     },
 
-    selectType: (domainCode) => {
-        LogWizard.state.domain = domainCode;
-        LogWizard.state.step = 3;
-        LogWizard.render();
+    goSpecific: () => {
+        LogWizard.state.mode = 'Specific';
+        LogWizard.showStep('logStepSpecific');
+        document.getElementById('logBackBtn').classList.remove('hidden');
+        document.getElementById('logTitle').innerText = "Specific Entry";
+        LogWizard.renderTags();
     },
 
     back: () => {
-        if(LogWizard.state.step === 3) {
-            // If came from Specific (Step 2), go back to 2. If General (Step 1), go back to 1.
-            if(LogWizard.state.domain === "General") LogWizard.state.step = 1;
-            else LogWizard.state.step = 2;
-        } else if(LogWizard.state.step === 2) {
-            LogWizard.state.step = 1;
-        }
-        LogWizard.render();
+        LogWizard.state.mode = null;
+        LogWizard.showStep('logStep1');
+        document.getElementById('logBackBtn').classList.add('hidden');
+        document.getElementById('logTitle').innerText = "New Observation";
     },
 
-    render: () => {
-        // Hide all steps
-        ['logStep1', 'logStep2', 'logStep3'].forEach(id => document.getElementById(id).classList.add('hidden'));
+    showStep: (id) => {
+        ['logStep1', 'logStepGeneral', 'logStepSpecific'].forEach(s => document.getElementById(s).classList.add('hidden'));
+        document.getElementById(id).classList.remove('hidden');
+    },
+
+    // --- TAGGING LOGIC ---
+
+    addDomain: (select) => {
+        const val = select.value;
+        if (!val) return;
+        if (!LogWizard.state.domains.includes(val)) {
+            LogWizard.state.domains.push(val);
+            LogWizard.renderTags();
+        }
+        select.value = "";
+    },
+
+    removeDomain: (code) => {
+        LogWizard.state.domains = LogWizard.state.domains.filter(d => d !== code);
+        LogWizard.renderTags();
+    },
+
+    renderTags: () => {
+        const container = document.getElementById('activeTags');
+        container.innerHTML = "";
         
-        // Show current
-        const step = LogWizard.state.step;
-        document.getElementById('logStep' + step).classList.remove('hidden');
+        LogWizard.state.domains.forEach(code => {
+            container.innerHTML += `
+            <div class="inline-flex items-center gap-2 px-3 py-2 bg-indigo-100 text-indigo-700 rounded-lg text-xs font-bold border border-indigo-200">
+                <span>${CONFIG.DOMAINS[code]}</span>
+                <button onclick="LogWizard.removeDomain('${code}')" class="hover:text-indigo-900"><i class="fa-solid fa-times"></i></button>
+            </div>`;
+        });
 
-        // Header Logic
-        const backBtn = document.getElementById('logBackBtn');
-        const title = document.getElementById('logTitle');
-
-        if(step === 1) {
-            backBtn.classList.add('hidden');
-            title.innerText = "New Observation";
-        } else if(step === 2) {
-            backBtn.classList.remove('hidden');
-            title.innerText = "Select Domain";
-        } else if(step === 3) {
-            backBtn.classList.remove('hidden');
-            title.innerText = "Write Note";
-            
-            // Update Badge
-            const badge = document.getElementById('selectedDomainBadge');
-            const dCode = LogWizard.state.domain;
-            const dName = dCode === "General" ? "General Note" : (CONFIG.DOMAINS[dCode] || dCode);
-            
-            badge.innerText = dName;
-            badge.className = dCode === "General" 
-                ? "inline-block px-3 py-1 bg-slate-100 text-slate-600 rounded-full text-xs font-bold uppercase tracking-wide border border-slate-200"
-                : "inline-block px-3 py-1 bg-indigo-50 text-indigo-700 rounded-full text-xs font-bold uppercase tracking-wide border border-indigo-100";
+        const inputArea = document.getElementById('specificInputArea');
+        const hint = document.getElementById('specificHint');
+        
+        if (LogWizard.state.domains.length > 0) {
+            inputArea.classList.remove('hidden');
+            hint.classList.add('hidden');
+        } else {
+            inputArea.classList.add('hidden');
+            hint.classList.remove('hidden');
         }
     },
 
     submit: async () => {
-        const note = document.getElementById('logNote').value;
-        if(!note.trim()) return alert("Please write a note.");
+        const mode = LogWizard.state.mode;
+        let note = "";
+        let domainString = "General";
 
-        const btn = document.querySelector('#logStep3 button');
+        if (mode === 'General') {
+            note = document.getElementById('logNoteGeneral').value;
+        } else {
+            note = document.getElementById('logNoteSpecific').value;
+            domainString = LogWizard.state.domains.join(", "); 
+        }
+
+        if (!note.trim()) return alert("Please write an observation.");
+
+        const btn = mode === 'General' ? document.querySelector('#logStepGeneral button') : document.querySelector('#logStepSpecific button');
         const oldText = btn.innerText;
         btn.innerText = "Saving...";
         btn.disabled = true;
 
-        // Send to Backend
-        await API.logObservation(
-            STATE.child.childId, 
-            LogWizard.state.domain, 
-            null, // MilestoneID (Null for Ad-Hoc v2)
-            null, // Score (Null for Ad-Hoc v2)
-            note
-        );
+        await API.logObservation(STATE.child.childId, domainString, null, null, note);
 
         btn.innerText = oldText;
         btn.disabled = false;
         Modals.close();
         
-        // Refresh Feed
         if (typeof FeedView !== 'undefined') FeedView.render();
     }
 };
