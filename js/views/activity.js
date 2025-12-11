@@ -1,11 +1,15 @@
 /**
  * VIEW: ACTIVITY DETAIL
  * Handles the "Recipe Book" view for a specific activity.
+ * Updated: v3.1 (Intention, Text Buttons, Full Obs)
  */
 
 const ActivityView = {
     
     open: (activityId) => {
+        // Debugging log to confirm new version is loaded
+        console.log("Opening Activity Detail v3.1 for:", activityId);
+
         const act = STATE.feed.find(x => x.id === activityId);
         if(!act) return;
         
@@ -132,10 +136,10 @@ const ActivityView = {
         (act.data.milestoneIds || []).forEach(mid => {
             const m = STATE.library.find(x => x.id === mid) || {desc: mid, domain: "Skill"};
             
-            // Build Buttons HTML
+            // Build Buttons HTML (Text Based)
             const buttonsHtml = levels.map(lvl => `
                 <button onclick="ActivityView.rate(this, '${mid}', ${lvl.score})" 
-                        class="rate-btn w-full py-2 px-1 rounded border border-slate-200 text-[10px] font-bold text-slate-500 hover:bg-slate-50 transition uppercase tracking-wide">
+                        class="rate-btn w-full py-3 px-1 rounded border border-slate-200 text-[10px] font-bold text-slate-500 hover:bg-slate-50 transition uppercase tracking-wide">
                     ${lvl.label}
                 </button>
             `).join('');
@@ -176,7 +180,7 @@ const ActivityView = {
             ratings.push({id: b.dataset.id, score: parseInt(b.dataset.score)});
         });
         
-        // Validation: Ensure user clicked something? (Optional)
+        // Validation
         if (ratings.length === 0) return alert("Please select a mastery level for at least one skill.");
 
         const btn = document.querySelector('#reviewModal button');
