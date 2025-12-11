@@ -7,8 +7,6 @@ const Modals = {
     open: (name) => {
         document.querySelectorAll('.modal').forEach(m => m.classList.add('hidden'));
         document.getElementById(name + 'Modal').classList.remove('hidden');
-        
-        // Auto-Initialize Wizards
         if(name === 'log') LogWizard.init();
         if(name === 'plan') PlanWizard.init();
     },
@@ -16,8 +14,8 @@ const Modals = {
     close: () => {
         document.querySelectorAll('.modal').forEach(m => m.classList.add('hidden'));
     },
-
-    // --- LEGACY SHIMS (To prevent crashes if main.js calls old methods) ---
+    
+    // --- LEGACY SHIMS ---
     renderAccordion: () => PlanWizard.renderAccordion(),
     toggleAcc: (id) => PlanWizard.toggleAccordionById(id),
     toggleObj: (chk) => PlanWizard.toggleObj(chk),
@@ -25,18 +23,15 @@ const Modals = {
 };
 
 /**
- * PLAN WIZARD (Activity Planner)
+ * PLAN WIZARD (Shopping Cart Logic)
  */
 const PlanWizard = {
     init: async () => {
         STATE.selectedObjectives = []; 
-        
-        // Safety: Ensure library is loaded
         if (!STATE.library || STATE.library.length === 0) {
             const res = await API.fetchLibrary();
             if (res.status === "success") STATE.library = res.data;
         }
-
         PlanWizard.renderTags();
         PlanWizard.renderAccordion();
         PlanWizard.updateUI();
@@ -50,10 +45,13 @@ const PlanWizard = {
         const grouped = Utils.groupLibrary(STATE.library);
         
         Object.keys(grouped).forEach((domCode, i) => {
+            // Fix: Fallback to domCode if it's already a full name
+            const domainLabel = CONFIG.DOMAINS[domCode] || domCode;
+            
             let html = `
             <div class="border border-slate-200 rounded-xl bg-white overflow-hidden group mb-2">
                 <button onclick="PlanWizard.toggleAccordion(this)" class="w-full text-left p-4 flex justify-between items-center bg-white hover:bg-slate-50 transition">
-                    <span class="font-bold text-sm text-slate-700">${CONFIG.DOMAINS[domCode] || domCode}</span>
+                    <span class="font-bold text-sm text-slate-700">${domainLabel}</span>
                     <i class="fa-solid fa-chevron-down text-slate-300 transition-transform duration-300"></i>
                 </button>
                 <div class="accordion-content bg-slate-50 px-4">
@@ -87,7 +85,7 @@ const PlanWizard = {
             content.style.maxHeight = null;
             icon.classList.remove('rotate-180');
         } else {
-            // Close others (Snap Back effect)
+            // Snap Back: Close others
             document.querySelectorAll('#milestoneAccordion .accordion-content').forEach(el => el.style.maxHeight = null);
             document.querySelectorAll('#milestoneAccordion .fa-chevron-down').forEach(el => el.classList.remove('rotate-180'));
             
@@ -96,14 +94,9 @@ const PlanWizard = {
         }
     },
     
-    // Legacy Shim Helpers
     toggleAccordionById: (id) => {
        const el = document.getElementById(id);
-       if(el) {
-           el.classList.toggle('accordion-open');
-           const icon = document.getElementById('icon-' + id);
-           if(icon) icon.classList.toggle('rotate-180');
-       }
+       if(el) { el.classList.toggle('accordion-open'); document.getElementById('icon-' + id)?.classList.toggle('rotate-180'); }
     },
     toggleObj: (chk) => {
         if(chk.checked) STATE.selectedObjectives.push(chk.value);
@@ -114,7 +107,7 @@ const PlanWizard = {
         if(STATE.selectedObjectives.length >= 3) return;
         STATE.selectedObjectives.push(id);
         
-        // Close accordions for better UX
+        // Close accordions
         document.querySelectorAll('#milestoneAccordion .accordion-content').forEach(el => el.style.maxHeight = null);
         document.querySelectorAll('#milestoneAccordion .fa-chevron-down').forEach(el => el.classList.remove('rotate-180'));
 
@@ -182,7 +175,7 @@ const PlanWizard = {
 };
 
 /**
- * LOG WIZARD (3-Path: General, Focused, Progress)
+ * LOG WIZARD (Ad-Hoc)
  */
 const LogWizard = {
     state: { mode: null, domains: [], progress: {} },
@@ -191,11 +184,13 @@ const LogWizard = {
         LogWizard.state = { mode: null, domains: [], progress: {} };
         ['logNoteGeneral', 'logNoteFocused', 'logNoteProgress'].forEach(id => document.getElementById(id).value = "");
         
-        // Populate Domain Dropdown (Focused)
+        // Populate Domain Dropdown
         const sel = document.getElementById('logDomainSelect');
         if (sel && sel.innerHTML === "") {
             sel.innerHTML = '<option value="">Select...</option>';
-            Object.keys(CONFIG.DOMAINS).forEach(code => sel.innerHTML += `<option value="${code}">${CONFIG.DOMAINS[code]}</option>`);
+            Object.keys(CONFIG.DOMAINS).forEach(code => {
+                sel.innerHTML += `<option value="${code}">${CONFIG.DOMAINS[code]}</option>`;
+            });
         }
         
         LogWizard.renderProgressSelector(); 
@@ -207,14 +202,22 @@ const LogWizard = {
     // NAVIGATION
     goGeneral: () => { LogWizard.state.mode='General'; LogWizard.showStep('logStepGeneral'); LogWizard.updateHeader("General Entry"); },
     goFocused: () => { LogWizard.state.mode='Focused'; LogWizard.showStep('logStepFocused'); LogWizard.updateHeader("Focused Entry"); LogWizard.renderTags(); },
-    goProgress: () => { LogWizard.state.mode='Progress'; LogWizard.showStep('logStepProgress'); LogWizard.updateHeader("Update Progress"); },
-    goToProgressNote: () => { LogWizard.showStep('logStepProgressNote'); },
+    
+    goProgress: () => { 
+        LogWizard.state.mode='Progress'; 
+        LogWizard.showStep('logStepProgress'); 
+        LogWizard.updateHeader("Update Progress"); 
+    },
+    
+    goToProgressNote: () => { 
+        LogWizard.renderSummary(); // Render the summary tiles
+        LogWizard.showStep('logStepProgressNote'); 
+    },
 
     back: () => {
         const curr = Array.from(document.querySelectorAll('[id^="logStep"]:not(.hidden)')).pop().id;
-        if(curr === "logStepProgressNote") {
-            LogWizard.goProgress(); // Go back to selector
-        } else {
+        if(curr === "logStepProgressNote") LogWizard.goProgress();
+        else {
             LogWizard.state.mode = null;
             LogWizard.showStep('logStep1');
             document.getElementById('logBackBtn').classList.add('hidden');
@@ -240,21 +243,24 @@ const LogWizard = {
     removeDomain: (code) => { LogWizard.state.domains = LogWizard.state.domains.filter(d => d !== code); LogWizard.renderTags(); },
     renderTags: () => {
         const c=document.getElementById('activeTags'); c.innerHTML="";
-        LogWizard.state.domains.forEach(code=>c.innerHTML+=`<div class="inline-flex items-center gap-2 px-3 py-2 bg-indigo-100 text-indigo-700 rounded-lg text-xs font-bold border border-indigo-200"><span>${CONFIG.DOMAINS[code]}</span><button onclick="LogWizard.removeDomain('${code}')" class="hover:text-indigo-900"><i class="fa-solid fa-times"></i></button></div>`);
+        LogWizard.state.domains.forEach(code=>c.innerHTML+=`<div class="inline-flex items-center gap-2 px-3 py-2 bg-indigo-100 text-indigo-700 rounded-lg text-xs font-bold border border-indigo-200"><span>${CONFIG.DOMAINS[code] || code}</span><button onclick="LogWizard.removeDomain('${code}')" class="hover:text-indigo-900"><i class="fa-solid fa-times"></i></button></div>`);
         const inp=document.getElementById('focusedInputArea'), hint=document.getElementById('focusedHint');
         if(LogWizard.state.domains.length>0){inp.classList.remove('hidden'); hint.classList.add('hidden');}else{inp.classList.add('hidden'); hint.classList.remove('hidden');}
     },
 
-    // --- PROGRESS LOGIC (New Accordion) ---
+    // --- PROGRESS LOGIC (Sticky, Toggle, Deselect) ---
     renderProgressSelector: () => {
         const c = document.getElementById('progressAccordion'); if(!c) return; c.innerHTML = "";
         const grouped = Utils.groupLibrary(STATE.library);
         
         Object.keys(grouped).forEach((dom, i) => {
+            // FIX: Use dom directly if mapping is undefined (handles full names)
+            const domLabel = CONFIG.DOMAINS[dom] || dom;
+            
             let html = `
             <div class="border border-slate-200 rounded-xl bg-white overflow-hidden group mb-2">
-                <button onclick="LogWizard.toggleProgAcc(this)" class="w-full text-left p-4 flex justify-between items-center bg-white hover:bg-slate-50 transition">
-                    <span class="font-bold text-sm text-slate-700">${CONFIG.DOMAINS[dom]}</span>
+                <button onclick="LogWizard.toggleProgAcc(this)" class="sticky top-0 z-20 w-full text-left p-4 flex justify-between items-center bg-white hover:bg-slate-50 transition border-b border-slate-50 shadow-sm">
+                    <span class="font-bold text-sm text-slate-700">${domLabel}</span>
                     <i class="fa-solid fa-chevron-down text-slate-300 transition-transform duration-300"></i>
                 </button>
                 <div class="accordion-content bg-slate-50 px-4">
@@ -266,22 +272,27 @@ const LogWizard = {
                     const currentScore = LogWizard.state.progress[m.id];
                     const label = currentScore ? Utils.getScoreLabel(currentScore) : "";
                     const badgeClass = currentScore ? "bg-emerald-100 text-emerald-700 border-emerald-200" : "hidden";
-                    
+                    // Only highlight bg if selected
+                    const bgClass = currentScore ? "bg-emerald-50 border-emerald-200" : "bg-white border-slate-200";
+
                     html += `
-                    <div class="bg-white border border-slate-200 rounded-lg overflow-hidden transition-all">
+                    <div class="border rounded-lg overflow-hidden transition-all ${bgClass}" id="card-${m.id}">
                         <button onclick="LogWizard.toggleProgItem('${m.id}')" class="w-full text-left p-3 flex justify-between items-start gap-2 hover:bg-slate-50">
                             <span class="text-xs text-slate-700 leading-snug font-medium">${m.desc}</span>
                             <span id="badge-${m.id}" class="text-[10px] font-bold px-2 py-0.5 rounded border ${badgeClass}">${label}</span>
                         </button>
                         <div id="prog-opts-${m.id}" class="hidden bg-slate-50 p-2 border-t border-slate-100 grid grid-cols-4 gap-2">
-                            ${[1,2,3,4].map(s => `<button onclick="LogWizard.selectScore('${m.id}', ${s})" class="p-2 rounded border border-slate-200 bg-white text-[10px] font-bold text-slate-500 hover:bg-blue-50 hover:text-blue-600 hover:border-blue-200 transition">${Utils.getScoreLabel(s)}</button>`).join('')}
+                            ${[1,2,3,4].map(s => {
+                                // Highlight active button
+                                const active = currentScore === s ? "bg-emerald-600 text-white border-emerald-600" : "bg-white text-slate-500 hover:bg-blue-50 hover:text-blue-600 border-slate-200";
+                                return `<button onclick="LogWizard.selectScore('${m.id}', ${s})" class="p-2 rounded border text-[10px] font-bold transition ${active}">${Utils.getScoreLabel(s)}</button>`;
+                            }).join('')}
                         </div>
                     </div>`;
                 });
                 html += `</div></div>`;
             });
-            html += `</div></div></div>`;
-            c.innerHTML += html;
+            c.innerHTML += html + `</div></div></div>`;
         });
     },
     
@@ -289,79 +300,128 @@ const LogWizard = {
         const content = btn.nextElementSibling; const icon = btn.querySelector('.fa-chevron-down');
         if(content.style.maxHeight) { content.style.maxHeight = null; icon.classList.remove('rotate-180'); }
         else { 
-            // Close others for cleanliness
+            // Optional: Close others
             document.querySelectorAll('#progressAccordion .accordion-content').forEach(el=>el.style.maxHeight=null);
             document.querySelectorAll('#progressAccordion .fa-chevron-down').forEach(el=>el.classList.remove('rotate-180'));
-            content.style.maxHeight = "3000px"; icon.classList.add('rotate-180'); 
+            content.style.maxHeight = "4000px"; icon.classList.add('rotate-180'); 
         }
     },
-    
     toggleProgItem: (id) => {
         const opts = document.getElementById(`prog-opts-${id}`);
-        // Close other open items in the same list? (Optional, but good for UX)
-        document.querySelectorAll('[id^="prog-opts-"]').forEach(el => {
-            if(el.id !== `prog-opts-${id}`) el.classList.add('hidden');
-        });
+        // Close others in same group?
         opts.classList.toggle('hidden');
     },
     
     selectScore: (id, score) => {
-        LogWizard.state.progress[id] = score;
-        const badge = document.getElementById(`badge-${id}`);
-        badge.innerText = Utils.getScoreLabel(score);
-        badge.className = "text-[10px] font-bold px-2 py-0.5 rounded border bg-emerald-100 text-emerald-700 border-emerald-200";
-        badge.classList.remove('hidden');
+        const current = LogWizard.state.progress[id];
         
-        // Close item
-        document.getElementById(`prog-opts-${id}`).classList.add('hidden');
+        if (current === score) {
+            // DESELECT / TOGGLE OFF
+            delete LogWizard.state.progress[id];
+            
+            // Reset UI
+            document.getElementById(`badge-${id}`).classList.add('hidden');
+            document.getElementById(`card-${id}`).className = "bg-white border border-slate-200 rounded-lg overflow-hidden transition-all";
+            
+            // Re-render buttons (to remove active class) - Expensive but safest, or just toggle classes manually
+            // Re-rendering this specific card's options is better
+            const optsContainer = document.getElementById(`prog-opts-${id}`);
+            optsContainer.querySelectorAll('button').forEach(b => b.className = "p-2 rounded border border-slate-200 bg-white text-[10px] font-bold text-slate-500 hover:bg-blue-50 hover:text-blue-600");
+            
+        } else {
+            // SELECT
+            LogWizard.state.progress[id] = score;
+            
+            // Update UI
+            const badge = document.getElementById(`badge-${id}`);
+            badge.innerText = Utils.getScoreLabel(score);
+            badge.className = "text-[10px] font-bold px-2 py-0.5 rounded border bg-emerald-100 text-emerald-700 border-emerald-200";
+            badge.classList.remove('hidden');
+            
+            document.getElementById(`card-${id}`).className = "bg-emerald-50 border border-emerald-200 rounded-lg overflow-hidden transition-all";
+            
+            // Highlight Button
+            const optsContainer = document.getElementById(`prog-opts-${id}`);
+            optsContainer.querySelectorAll('button').forEach(b => {
+                if(b.innerText === Utils.getScoreLabel(score)) {
+                     b.className = "p-2 rounded border text-[10px] font-bold transition bg-emerald-600 text-white border-emerald-600";
+                } else {
+                     b.className = "p-2 rounded border border-slate-200 bg-white text-[10px] font-bold text-slate-500 hover:bg-blue-50 hover:text-blue-600";
+                }
+            });
+
+            // Close menu after selection for cleanliness
+            setTimeout(() => document.getElementById(`prog-opts-${id}`).classList.add('hidden'), 150);
+        }
         
-        // Show Footer if we have at least one selection
-        document.getElementById('progressFooter').classList.remove('hidden');
+        // Show/Hide Footer based on selection count
+        const hasSelection = Object.keys(LogWizard.state.progress).length > 0;
+        if(hasSelection) document.getElementById('progressFooter').classList.remove('hidden');
+        else document.getElementById('progressFooter').classList.add('hidden');
+    },
+
+    // --- SUMMARY RENDERER ---
+    renderSummary: () => {
+        const container = document.getElementById('progressSummaryContainer');
+        if(!container) return;
+        container.innerHTML = "";
+        
+        Object.keys(LogWizard.state.progress).forEach(id => {
+            const score = LogWizard.state.progress[id];
+            const m = STATE.library.find(x => x.id === id);
+            const dom = m ? (CONFIG.DOMAINS[m.domain] || m.domain) : "";
+            if(m) {
+                container.innerHTML += `
+                <div class="bg-white p-2 rounded-lg border border-blue-100 mb-1 flex justify-between items-center shadow-sm">
+                    <div class="truncate mr-2 w-3/4">
+                        <span class="text-[10px] font-bold text-slate-400 uppercase block leading-none mb-1">${dom}</span>
+                        <p class="text-xs font-bold text-slate-700 truncate leading-tight">${m.desc}</p>
+                    </div>
+                    <span class="text-[10px] font-bold text-emerald-600 bg-emerald-50 px-2 py-1 rounded border border-emerald-100 shrink-0">${Utils.getScoreLabel(score)}</span>
+                </div>`;
+            }
+        });
     },
 
     // --- SUBMIT ---
     submit: async () => {
         const mode = LogWizard.state.mode;
         let note = "";
+        let btnId = "";
         
-        // CASE 1: GENERAL
-        if(mode === 'General') {
-            note = document.getElementById('logNoteGeneral').value;
-            if(!note.trim()) return alert("Write a note.");
-            
-            const btn = document.querySelector('#logStepGeneral button');
-            btn.innerText = "Saving..."; btn.disabled = true;
-            await API.logObservation(STATE.child.childId, "General", null, null, note);
-            btn.innerText = "Save Observation"; btn.disabled = false;
-        }
+        if(mode === 'General') { note = document.getElementById('logNoteGeneral').value; btnId = '#btnSubmitGeneral'; }
+        else if(mode === 'Focused') { note = document.getElementById('logNoteFocused').value; btnId = '#btnSubmitFocused'; }
+        else if(mode === 'Progress') { note = document.getElementById('logNoteProgress').value; btnId = '#btnSubmitProgress'; }
         
-        // CASE 2: FOCUSED
-        else if(mode === 'Focused') {
-            note = document.getElementById('logNoteFocused').value;
-            if(!note.trim()) return alert("Write a note.");
-            const domains = LogWizard.state.domains.join(", ");
-            
-            const btn = document.querySelector('#logStepFocused button');
-            btn.innerText = "Saving..."; btn.disabled = true;
-            await API.logObservation(STATE.child.childId, domains, null, null, note);
-            btn.innerText = "Save Observation"; btn.disabled = false;
-        }
+        // Validation
+        if(mode !== 'Progress' && !note.trim()) return alert("Please write a note.");
+
+        const btn = document.querySelector(btnId) || document.querySelector('#btnSkipNote');
+        const oldText = btn.innerText;
         
-        // CASE 3: PROGRESS
+        // ANIMATION: Success State
+        btn.innerHTML = `<i class="fa-solid fa-check mr-2"></i> Added!`;
+        btn.classList.add('btn-success');
+        
+        // Disable temporarily
+        btn.disabled = true;
+
+        // API Calls
+        if(mode === 'General') await API.logObservation(STATE.child.childId, "General", null, null, note);
+        else if(mode === 'Focused') await API.logObservation(STATE.child.childId, LogWizard.state.domains.join(", "), null, null, note);
         else if(mode === 'Progress') {
-            note = document.getElementById('logNoteProgress').value;
-            // Build updates array
             const updates = Object.keys(LogWizard.state.progress).map(id => ({id: id, score: LogWizard.state.progress[id]}));
-            if(updates.length === 0) return alert("Select at least one milestone.");
-            
-            const btn = document.querySelector('#logStepProgressNote button');
-            btn.innerText = "Saving..."; btn.disabled = true;
-            await API.logBulkUpdate(STATE.child.childId, updates, note); 
-            btn.innerText = "Add Observation"; btn.disabled = false;
+            await API.logBulkUpdate(STATE.child.childId, updates, note);
         }
 
-        Modals.close();
-        if(typeof FeedView !== 'undefined') FeedView.render();
-        if(typeof ProgressView !== 'undefined') ProgressView.render();
+        // Wait for visual effect before closing
+        setTimeout(() => {
+            btn.innerText = oldText; 
+            btn.classList.remove('btn-success');
+            btn.disabled = false;
+            Modals.close();
+            if (typeof FeedView !== 'undefined') FeedView.render();
+            if (typeof ProgressView !== 'undefined') ProgressView.render();
+        }, 1000); 
     }
 };
