@@ -15,7 +15,15 @@ const Modals = {
     
     close: () => {
         document.querySelectorAll('.modal').forEach(m => m.classList.add('hidden'));
-    }
+    },
+
+    // --- COMPATIBILITY SHIMS ---
+    // These prevent main.js from crashing if it calls old methods
+    renderAccordion: () => PlanWizard.renderAccordion(),
+    initLog: () => LogWizard.init(),
+    toggleAcc: (id) => PlanWizard.toggleAccordionById(id),
+    toggleObj: (chk) => PlanWizard.toggleObj(chk),
+    submitPlan: () => PlanWizard.submit()
 };
 
 /**
@@ -23,8 +31,18 @@ const Modals = {
  */
 const PlanWizard = {
     
-    init: () => {
+    init: async () => {
         STATE.selectedObjectives = []; // Clear
+        
+        // Safety: If library isn't loaded yet, fetch it now
+        if (!STATE.library || STATE.library.length === 0) {
+            console.log("Library empty, fetching...");
+            const res = await API.fetchLibrary();
+            if (res.status === "success") {
+                STATE.library = res.data;
+            }
+        }
+
         PlanWizard.renderTags();
         PlanWizard.renderAccordion();
         PlanWizard.updateUI();
@@ -32,15 +50,21 @@ const PlanWizard = {
 
     renderAccordion: () => {
         const c = document.getElementById('milestoneAccordion'); 
+        if(!c) return;
         c.innerHTML = "";
         
+        if (!STATE.library || STATE.library.length === 0) {
+            c.innerHTML = `<div class="text-center p-4 text-gray-400">No milestones found.</div>`;
+            return;
+        }
+
         const grouped = Utils.groupLibrary(STATE.library);
         
         Object.keys(grouped).forEach((domCode, i) => {
             let html = `
-            <div class="border border-slate-200 rounded-xl bg-white overflow-hidden group">
+            <div class="border border-slate-200 rounded-xl bg-white overflow-hidden group mb-2">
                 <button onclick="PlanWizard.toggleAccordion(this)" class="w-full text-left p-4 flex justify-between items-center bg-white hover:bg-slate-50 transition">
-                    <span class="font-bold text-sm text-slate-700">${CONFIG.DOMAINS[domCode]}</span>
+                    <span class="font-bold text-sm text-slate-700">${CONFIG.DOMAINS[domCode] || domCode}</span>
                     <i class="fa-solid fa-chevron-down text-slate-300 transition-transform duration-300"></i>
                 </button>
                 <div class="accordion-content bg-slate-50 px-4">
@@ -75,12 +99,28 @@ const PlanWizard = {
             icon.classList.remove('rotate-180');
         } else {
             // Close others (Snap Back effect)
-            document.querySelectorAll('.accordion-content').forEach(el => el.style.maxHeight = null);
-            document.querySelectorAll('.fa-chevron-down').forEach(el => el.classList.remove('rotate-180'));
+            document.querySelectorAll('#milestoneAccordion .accordion-content').forEach(el => el.style.maxHeight = null);
+            document.querySelectorAll('#milestoneAccordion .fa-chevron-down').forEach(el => el.classList.remove('rotate-180'));
             
             content.style.maxHeight = "2000px";
             icon.classList.add('rotate-180');
         }
+    },
+    
+    // Helper for legacy shim
+    toggleAccordionById: (id) => {
+       const el = document.getElementById(id);
+       if(el) {
+           el.classList.toggle('accordion-open');
+           const icon = document.getElementById('icon-' + id);
+           if(icon) icon.classList.toggle('rotate-180');
+       }
+    },
+    
+    // Helper for legacy shim
+    toggleObj: (chk) => {
+        if(chk.checked) STATE.selectedObjectives.push(chk.value);
+        else STATE.selectedObjectives = STATE.selectedObjectives.filter(x => x !== chk.value);
     },
 
     select: (id) => {
@@ -88,8 +128,8 @@ const PlanWizard = {
         STATE.selectedObjectives.push(id);
         
         // Snap Back: Close accordions
-        document.querySelectorAll('.accordion-content').forEach(el => el.style.maxHeight = null);
-        document.querySelectorAll('.fa-chevron-down').forEach(el => el.classList.remove('rotate-180'));
+        document.querySelectorAll('#milestoneAccordion .accordion-content').forEach(el => el.style.maxHeight = null);
+        document.querySelectorAll('#milestoneAccordion .fa-chevron-down').forEach(el => el.classList.remove('rotate-180'));
 
         PlanWizard.updateUI();
     },
@@ -108,13 +148,15 @@ const PlanWizard = {
         
         STATE.selectedObjectives.forEach(id => {
             const m = STATE.library.find(x => x.id === id);
-            const domainName = CONFIG.DOMAINS[m.domain] || m.domain;
+            // Fallback if m not found (shouldn't happen if library loaded)
+            const domainName = m ? (CONFIG.DOMAINS[m.domain] || m.domain) : "Unknown";
+            const desc = m ? m.desc : id;
             
             tagContainer.innerHTML += `
             <div class="flex justify-between items-center p-3 bg-indigo-50 border border-indigo-100 rounded-xl animate-fade-in">
                 <div>
                     <span class="text-[10px] font-bold text-indigo-400 uppercase">${domainName}</span>
-                    <p class="text-xs font-bold text-indigo-900 leading-tight line-clamp-1">${m.desc}</p>
+                    <p class="text-xs font-bold text-indigo-900 leading-tight line-clamp-1">${desc}</p>
                 </div>
                 <button onclick="PlanWizard.remove('${id}')" class="w-6 h-6 flex items-center justify-center bg-white rounded-full text-indigo-300 hover:text-red-500 hover:bg-red-50 transition shadow-sm flex-shrink-0">
                     <i class="fa-solid fa-times text-xs"></i>
@@ -168,7 +210,7 @@ const LogWizard = {
         document.getElementById('logNoteSpecific').value = "";
         
         const sel = document.getElementById('logDomainSelect');
-        if (sel.innerHTML === "") {
+        if (sel && sel.innerHTML === "") {
             sel.innerHTML = '<option value="">Select...</option>';
             Object.keys(CONFIG.DOMAINS).forEach(code => {
                 sel.innerHTML += `<option value="${code}">${CONFIG.DOMAINS[code]}</option>`;
