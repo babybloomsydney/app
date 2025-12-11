@@ -133,7 +133,7 @@
         </div>
     </div>
 
-    <!-- LOG DRAWER (3-Path Wizard) -->
+    <!-- LOG DRAWER (Updated Multi-Select Wizard) -->
     <div id="logModal" class="modal fixed inset-0 z-[70] bg-slate-900/50 hidden flex items-end justify-center backdrop-blur-sm">
         <div class="bg-white w-full max-w-md rounded-t-3xl p-6 shadow-2xl animate-slide-up h-[85vh] flex flex-col">
             
@@ -197,7 +197,6 @@
                 <!-- STEP: PROGRESS SELECTOR -->
                 <div id="logStepProgress" class="hidden h-full flex flex-col relative">
                     <div class="flex-1 overflow-y-auto pb-24">
-                        <!-- Removed "Update Milestones" text per request -->
                         <div id="progressAccordion" class="space-y-2"></div>
                     </div>
                     <div id="progressFooter" class="hidden absolute bottom-0 left-0 w-full bg-white pt-4 pb-2 border-t border-slate-100">
@@ -205,13 +204,12 @@
                     </div>
                 </div>
 
-                <!-- STEP: PROGRESS NOTE -->
+                <!-- STEP: PROGRESS NOTE (Updated with Summary) -->
                 <div id="logStepProgressNote" class="hidden flex flex-col h-full">
                     <div class="mb-4">
-                        <!-- NEW: Milestone Summary Container -->
-                        <div id="progressSummaryContainer" class="bg-blue-50 border border-blue-100 rounded-xl p-3 mb-4 max-h-40 overflow-y-auto custom-scrollbar">
-                            <!-- Populated by JS -->
-                        </div>
+                        <!-- Summary Container -->
+                        <div id="progressSummaryContainer" class="bg-blue-50 border border-blue-100 rounded-xl p-3 mb-4 max-h-40 overflow-y-auto custom-scrollbar"></div>
+                        
                         <div class="flex justify-between items-center">
                             <span class="inline-block px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-xs font-bold uppercase tracking-wide border border-blue-200">Progress Update</span>
                             <button onclick="LogWizard.submit()" id="btnSkipNote" class="text-xs font-bold text-slate-400 hover:text-slate-600">Skip Note</button>
