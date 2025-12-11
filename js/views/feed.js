@@ -44,13 +44,15 @@ const FeedView = {
         if (item.type === "REPORT") {
             // A. Find Parent Activity Title
             const parentId = item.refs ? item.refs[0] : null;
-            let parentTitle = "Activity Report";
+            let parentTitle = "Unknown Activity";
             if(parentId) {
                 const p = STATE.feed.find(x => x.id === parentId);
-                if(p) parentTitle = (p.data.activityJson?.creativeName) || p.title;
+                if(p) {
+                    parentTitle = (p.data.activityJson?.creativeName) || p.title;
+                }
             }
             
-            // B. Find Associated Progress
+            // B. Find Associated Progress (Child of this Report)
             const progressItem = STATE.feed.find(x => x.type === "PROGRESS" && x.refs && x.refs.includes(item.id));
             let progressHtml = "";
             
@@ -73,6 +75,7 @@ const FeedView = {
                 progressHtml += `</div></div>`;
             }
 
+            // C. Render
             return `
             <div class="feed-item bg-white p-5 rounded-2xl shadow-sm border border-slate-100 mb-4">
                 <div class="flex justify-between items-center mb-1">
@@ -98,16 +101,22 @@ const FeedView = {
             const rawDomain = item.data.domain || "General";
             let displayDomains = rawDomain;
             
+            // Format Tags
             if (rawDomain !== "General" && rawDomain.includes(",")) {
-                displayDomains = rawDomain.split(',').map(d => `<span class="bg-purple-50 text-purple-700 px-2 py-0.5 rounded mr-1">${CONFIG.DOMAINS[d.trim()] || d.trim()}</span>`).join("");
+                displayDomains = rawDomain.split(',').map(d => {
+                    const code = d.trim();
+                    const name = CONFIG.DOMAINS[code] || code;
+                    return `<span class="bg-purple-50 text-purple-700 px-2 py-0.5 rounded mr-1">${name}</span>`;
+                }).join("");
             } else if (rawDomain !== "General") {
-                displayDomains = `<span class="bg-purple-50 text-purple-700 px-2 py-0.5 rounded">${CONFIG.DOMAINS[rawDomain] || rawDomain}</span>`;
+                const name = CONFIG.DOMAINS[rawDomain] || rawDomain;
+                displayDomains = `<span class="bg-purple-50 text-purple-700 px-2 py-0.5 rounded">${name}</span>`;
             } else {
                 displayDomains = `<span class="bg-slate-100 text-slate-600 px-2 py-0.5 rounded">General</span>`;
             }
             
             const mDesc = item.data.milestoneId ? Utils.getMilestoneDesc(item.data.milestoneId) : null;
-            const score = item.data.score !== null ? Utils.getScoreLabel(item.data.score) : null;
+            const score = item.data.score !== null && item.data.score !== undefined ? Utils.getScoreLabel(item.data.score) : null;
 
             return `
             <div class="feed-item bg-white p-5 rounded-2xl shadow-sm border border-slate-100 mb-4">
@@ -127,23 +136,24 @@ const FeedView = {
             </div>`;
         }
         
-        // --- 4. PROGRESS CARD (Standalone) ---
+        // --- 4. PROGRESS CARD (Standalone - Growth) ---
         if (item.type === "PROGRESS") {
+            // Hide duplicates linked to Reports
             if(item.refs && item.refs.length > 0) return ""; 
             
-            // Build Note Section
-            const noteHtml = item.data.note ? `<div class="mb-3 pb-3 border-b border-slate-100"><p class="text-sm text-slate-600 italic">"${item.data.note}"</p></div>` : "";
+            // Note Display
+            const noteHtml = item.data.note ? `<div class="mb-3 pb-3 border-b border-slate-100"><p class="text-sm text-slate-600 italic">${item.data.note}</p></div>` : "";
 
-            // Build List
             let list = "";
             (item.data.updates||[]).forEach(u => {
                 const dom = Utils.getMilestoneDomain(u.id);
+                // Added Domain Badge to list item
                 list += `
                 <div class="py-2 border-b border-slate-100 last:border-0">
                     <div class="flex justify-between items-start">
-                        <div class="pr-2">
-                            <span class="text-[10px] bg-slate-100 text-slate-500 px-1 rounded font-bold mr-1">${dom}</span>
-                            <span class="text-xs font-bold text-slate-700">${Utils.getMilestoneDesc(u.id)}</span>
+                        <div class="flex items-start gap-2 pr-2 overflow-hidden">
+                            <span class="text-[10px] bg-slate-100 text-slate-500 px-1 rounded font-bold whitespace-nowrap mt-0.5">${dom}</span>
+                            <p class="text-xs font-bold text-slate-700 leading-snug truncate">${Utils.getMilestoneDesc(u.id)}</p>
                         </div>
                         <span class="text-[10px] font-bold text-emerald-600 bg-emerald-50 px-2 py-1 rounded shrink-0">${Utils.getScoreLabel(u.score)}</span>
                     </div>
@@ -155,7 +165,7 @@ const FeedView = {
                 <div class="flex justify-between items-center mb-3">
                     <div class="flex items-center gap-2">
                         <div class="w-6 h-6 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center text-xs"><i class="fa-solid fa-arrow-trend-up"></i></div>
-                        <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wide">Manual Assessment</span>
+                        <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wide">Growth</span>
                     </div>
                     <span class="text-[10px] text-gray-400">${date}</span>
                 </div>
