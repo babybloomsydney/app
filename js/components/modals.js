@@ -1,42 +1,166 @@
 /**
  * MODALS & WIZARDS
+ * Handles UI Overlays, Plan Wizard, and Log Wizard.
  */
 
 const Modals = {
     open: (name) => {
         document.querySelectorAll('.modal').forEach(m => m.classList.add('hidden'));
         document.getElementById(name + 'Modal').classList.remove('hidden');
+        
+        // Auto-Initialize Wizards
         if(name === 'log') LogWizard.init();
+        if(name === 'plan') PlanWizard.init();
     },
-    close: () => document.querySelectorAll('.modal').forEach(m => m.classList.add('hidden')),
     
-    // --- PLANNER ---
-    renderAccordion: () => {
-        const c = document.getElementById('milestoneAccordion'); c.innerHTML = "";
-        const g = Utils.groupLibrary(STATE.library);
-        Object.keys(g).forEach((d, i) => {
-            let h = `<div class="border border-slate-200 rounded-xl bg-white overflow-hidden mb-2"><button onclick="Modals.toggleAcc('d${i}')" class="w-full text-left p-4 font-bold text-sm text-slate-700 flex justify-between items-center bg-white hover:bg-slate-50 transition">${CONFIG.DOMAINS[d]}<i id="icon-d${i}" class="fa-solid fa-chevron-down transition-transform"></i></button><div id="d${i}" class="accordion-content px-4 bg-slate-50 border-t border-slate-100">`;
-            Object.keys(g[d]).forEach(a => {
-                h += `<div class="py-3 border-b border-slate-200 last:border-0"><p class="text-[10px] font-bold text-slate-400 uppercase mb-2 tracking-wide">${a}</p>`;
-                g[d][a].forEach(m => h += `<label class="flex gap-3 py-2 items-start cursor-pointer hover:bg-slate-100 rounded-lg px-2 -mx-2 transition"><input type="checkbox" value="${m.id}" onchange="Modals.toggleObj(this)" class="mt-1 accent-indigo-600 w-4 h-4"><span class="text-xs text-slate-600 leading-snug">${m.desc}</span></label>`);
-                h += `</div>`;
-            });
-            c.innerHTML += h + `</div></div>`;
-        });
-    },
-    toggleAcc:(id)=>{document.getElementById(id).classList.toggle('accordion-open');document.getElementById('icon-'+id).classList.toggle('rotate-180');},
-    toggleObj:(chk)=>{chk.checked?STATE.selectedObjectives.push(chk.value):STATE.selectedObjectives=STATE.selectedObjectives.filter(x=>x!==chk.value);},
-    submitPlan:async()=>{if(STATE.selectedObjectives.length===0)return alert("Select milestones");const btn=document.getElementById('submitPlanBtn');btn.innerText="Processing...";btn.disabled=true;await API.generatePlan(STATE.child.childId,STATE.selectedObjectives);btn.innerText="Generate Plan";btn.disabled=false;Modals.close();Router.navigate('feed');STATE.selectedObjectives=[];}
+    close: () => {
+        document.querySelectorAll('.modal').forEach(m => m.classList.add('hidden'));
+    }
 };
 
 /**
- * LOG WIZARD (Multi-Select & Tagging)
+ * PLAN WIZARD (Shopping Cart Logic)
+ */
+const PlanWizard = {
+    
+    init: () => {
+        STATE.selectedObjectives = []; // Clear
+        PlanWizard.renderTags();
+        PlanWizard.renderAccordion();
+        PlanWizard.updateUI();
+    },
+
+    renderAccordion: () => {
+        const c = document.getElementById('milestoneAccordion'); 
+        c.innerHTML = "";
+        
+        const grouped = Utils.groupLibrary(STATE.library);
+        
+        Object.keys(grouped).forEach((domCode, i) => {
+            let html = `
+            <div class="border border-slate-200 rounded-xl bg-white overflow-hidden group">
+                <button onclick="PlanWizard.toggleAccordion(this)" class="w-full text-left p-4 flex justify-between items-center bg-white hover:bg-slate-50 transition">
+                    <span class="font-bold text-sm text-slate-700">${CONFIG.DOMAINS[domCode]}</span>
+                    <i class="fa-solid fa-chevron-down text-slate-300 transition-transform duration-300"></i>
+                </button>
+                <div class="accordion-content bg-slate-50 px-4">
+                    <div class="py-2 space-y-4">`;
+
+            Object.keys(grouped[domCode]).forEach(age => {
+                html += `<div><p class="text-[10px] font-bold text-slate-400 uppercase mb-2 tracking-wide mt-2">${age}</p><div class="space-y-1">`;
+                grouped[domCode][age].forEach(m => {
+                    const isSelected = STATE.selectedObjectives.includes(m.id);
+                    if(isSelected) return; 
+
+                    html += `
+                    <button onclick="PlanWizard.select('${m.id}')" class="w-full text-left p-3 rounded-lg bg-white border border-slate-200 hover:border-indigo-300 hover:bg-indigo-50 transition flex items-start gap-3 group/btn">
+                        <div class="mt-0.5 w-4 h-4 rounded-full border-2 border-slate-300 group-hover/btn:border-indigo-500 flex-shrink-0"></div>
+                        <span class="text-xs text-slate-600 group-hover/btn:text-indigo-700 leading-snug">${m.desc}</span>
+                    </button>`;
+                });
+                html += `</div></div>`;
+            });
+
+            html += `</div></div></div>`;
+            c.innerHTML += html;
+        });
+    },
+
+    toggleAccordion: (btn) => {
+        const content = btn.nextElementSibling;
+        const icon = btn.querySelector('.fa-chevron-down');
+        
+        if(content.style.maxHeight) {
+            content.style.maxHeight = null;
+            icon.classList.remove('rotate-180');
+        } else {
+            // Close others (Snap Back effect)
+            document.querySelectorAll('.accordion-content').forEach(el => el.style.maxHeight = null);
+            document.querySelectorAll('.fa-chevron-down').forEach(el => el.classList.remove('rotate-180'));
+            
+            content.style.maxHeight = "2000px";
+            icon.classList.add('rotate-180');
+        }
+    },
+
+    select: (id) => {
+        if(STATE.selectedObjectives.length >= 3) return;
+        STATE.selectedObjectives.push(id);
+        
+        // Snap Back: Close accordions
+        document.querySelectorAll('.accordion-content').forEach(el => el.style.maxHeight = null);
+        document.querySelectorAll('.fa-chevron-down').forEach(el => el.classList.remove('rotate-180'));
+
+        PlanWizard.updateUI();
+    },
+
+    remove: (id) => {
+        STATE.selectedObjectives = STATE.selectedObjectives.filter(x => x !== id);
+        PlanWizard.updateUI();
+    },
+
+    updateUI: () => {
+        const count = STATE.selectedObjectives.length;
+        
+        // Render Tags
+        const tagContainer = document.getElementById('planActiveTags');
+        tagContainer.innerHTML = "";
+        
+        STATE.selectedObjectives.forEach(id => {
+            const m = STATE.library.find(x => x.id === id);
+            const domainName = CONFIG.DOMAINS[m.domain] || m.domain;
+            
+            tagContainer.innerHTML += `
+            <div class="flex justify-between items-center p-3 bg-indigo-50 border border-indigo-100 rounded-xl animate-fade-in">
+                <div>
+                    <span class="text-[10px] font-bold text-indigo-400 uppercase">${domainName}</span>
+                    <p class="text-xs font-bold text-indigo-900 leading-tight line-clamp-1">${m.desc}</p>
+                </div>
+                <button onclick="PlanWizard.remove('${id}')" class="w-6 h-6 flex items-center justify-center bg-white rounded-full text-indigo-300 hover:text-red-500 hover:bg-red-50 transition shadow-sm flex-shrink-0">
+                    <i class="fa-solid fa-times text-xs"></i>
+                </button>
+            </div>`;
+        });
+
+        // Visibility Logic
+        const selectorArea = document.getElementById('planSelectorArea');
+        const maxLimitMsg = document.getElementById('planMaxLimitMsg');
+        const footer = document.getElementById('planFooter');
+
+        if(count >= 3) {
+            selectorArea.classList.add('hidden');
+            maxLimitMsg.classList.remove('hidden');
+        } else {
+            selectorArea.classList.remove('hidden');
+            maxLimitMsg.classList.add('hidden');
+            PlanWizard.renderAccordion(); // Re-render to hide selected items
+        }
+
+        if(count > 0) footer.classList.remove('hidden');
+        else footer.classList.add('hidden');
+    },
+
+    submit: async () => {
+        const btn = document.getElementById('submitPlanBtn');
+        const oldText = btn.innerText;
+        btn.innerText = "Processing..."; btn.disabled = true;
+
+        await API.generatePlan(STATE.child.childId, STATE.selectedObjectives);
+
+        btn.innerText = oldText; btn.disabled = false;
+        Modals.close();
+        Router.navigate('feed');
+        STATE.selectedObjectives = [];
+        
+        if(typeof FeedView !== 'undefined') FeedView.render();
+    }
+};
+
+/**
+ * LOG WIZARD (Ad-Hoc)
  */
 const LogWizard = {
-    state: {
-        mode: null, 
-        domains: [] 
-    },
+    state: { mode: null, domains: [] },
 
     init: () => {
         LogWizard.state = { mode: null, domains: [] };
@@ -72,8 +196,14 @@ const LogWizard = {
     },
 
     back: () => {
-        LogWizard.state.mode = null;
-        LogWizard.showStep('logStep1');
+        if(LogWizard.state.step === 3) { // Not using numbers anymore, logic is simpler
+             LogWizard.state.mode = null;
+             LogWizard.showStep('logStep1');
+        } else {
+             LogWizard.state.mode = null;
+             LogWizard.showStep('logStep1');
+        }
+        // Specific 'Back' handling
         document.getElementById('logBackBtn').classList.add('hidden');
         document.getElementById('logTitle').innerText = "New Observation";
     },
@@ -82,8 +212,6 @@ const LogWizard = {
         ['logStep1', 'logStepGeneral', 'logStepSpecific'].forEach(s => document.getElementById(s).classList.add('hidden'));
         document.getElementById(id).classList.remove('hidden');
     },
-
-    // --- TAGGING LOGIC ---
 
     addDomain: (select) => {
         const val = select.value;
@@ -106,7 +234,7 @@ const LogWizard = {
         
         LogWizard.state.domains.forEach(code => {
             container.innerHTML += `
-            <div class="inline-flex items-center gap-2 px-3 py-2 bg-indigo-100 text-indigo-700 rounded-lg text-xs font-bold border border-indigo-200">
+            <div class="inline-flex items-center gap-2 px-3 py-2 bg-indigo-100 text-indigo-700 rounded-lg text-xs font-bold border border-indigo-200 animate-fade-in">
                 <span>${CONFIG.DOMAINS[code]}</span>
                 <button onclick="LogWizard.removeDomain('${code}')" class="hover:text-indigo-900"><i class="fa-solid fa-times"></i></button>
             </div>`;
@@ -140,15 +268,12 @@ const LogWizard = {
 
         const btn = mode === 'General' ? document.querySelector('#logStepGeneral button') : document.querySelector('#logStepSpecific button');
         const oldText = btn.innerText;
-        btn.innerText = "Saving...";
-        btn.disabled = true;
+        btn.innerText = "Saving..."; btn.disabled = true;
 
         await API.logObservation(STATE.child.childId, domainString, null, null, note);
 
-        btn.innerText = oldText;
-        btn.disabled = false;
+        btn.innerText = oldText; btn.disabled = false;
         Modals.close();
-        
         if (typeof FeedView !== 'undefined') FeedView.render();
     }
 };
