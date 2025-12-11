@@ -1,13 +1,78 @@
-body { background-color: #f8fafc; padding-bottom: 100px; -webkit-tap-highlight-color: transparent; }
+/* BABY BLOOM STYLESHEET */
+
+/* Base & Layout */
+body {
+    background-color: #f8fafc; /* Slate-50 */
+    padding-bottom: 100px; /* Space for FAB */
+    -webkit-tap-highlight-color: transparent;
+}
+
+/* --- ANIMATIONS --- */
+.animate-fade-in { animation: fadeIn 0.5s ease-out; }
+@keyframes fadeIn { 
+    from { opacity: 0; transform: translateY(10px); } 
+    to { opacity: 1; transform: translateY(0); } 
+}
+
 .animate-slide-up { animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1); }
-@keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
-.accordion-content { max-height: 0; overflow: hidden; transition: max-height 0.3s ease-in-out; }
-.accordion-open { max-height: 2000px; }
+@keyframes slideUp { 
+    from { transform: translateY(100%); } 
+    to { transform: translateY(0); } 
+}
+
+/* --- COMPONENT STYLES --- */
+
+/* Accordion Logic */
+.accordion-content {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.3s ease-in-out;
+}
+.accordion-open {
+    max-height: 2000px; /* Arbitrary large height */
+}
 .rotate-180 { transform: rotate(180deg); }
 .transition-transform { transition: transform 0.3s; }
-.tab-active { border-bottom: 2px solid #10b981; color: #047857; font-weight: 800; }
-.tab-inactive { color: #94a3b8; font-weight: 500; }
+
+/* Navigation Tabs */
+.tab-active {
+    border-bottom: 2px solid #10b981; /* Emerald-500 */
+    color: #047857; /* Emerald-700 */
+    font-weight: 800;
+}
+.tab-inactive {
+    color: #94a3b8; /* Slate-400 */
+    font-weight: 500;
+}
+
+/* Floating Action Button */
 .fab-menu { transition: transform 0.2s; }
 .fab-active { transform: rotate(45deg); background-color: #ef4444 !important; }
-.rate-btn.selected, .log-rate-btn.selected { background-color: #10b981; color: white; border-color: #10b981; }
+
+/* Rating Buttons */
+.rate-btn { transition: all 0.2s; }
+.rate-btn.selected, .log-rate-btn.selected {
+    background-color: #10b981;
+    color: white;
+    border-color: #10b981;
+}
+
+/* Custom Scrollbar */
 .custom-scrollbar::-webkit-scrollbar { width: 4px; }
+.custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+.custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+
+/* --- DRAWER SPECIFIC STYLES --- */
+
+/* Ensure Review and Log modals (Drawers) sit ON TOP of the 
+   Activity Detail modal if opened from there.
+*/
+#reviewModal, #logModal {
+    z-index: 70; /* Higher than standard modal z-60 */
+}
+
+/* Font Awesome Helper */
+.fa-solid { 
+    font-family: "Font Awesome 6 Free"; 
+    font-weight: 900; 
+}
