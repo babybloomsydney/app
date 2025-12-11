@@ -133,7 +133,7 @@
         </div>
     </div>
 
-    <!-- LOG DRAWER (Updated 3-Path Wizard) -->
+    <!-- LOG DRAWER (3-Path Wizard) -->
     <div id="logModal" class="modal fixed inset-0 z-[70] bg-slate-900/50 hidden flex items-end justify-center backdrop-blur-sm">
         <div class="bg-white w-full max-w-md rounded-t-3xl p-6 shadow-2xl animate-slide-up h-[85vh] flex flex-col">
             
@@ -174,7 +174,7 @@
                 <div id="logStepGeneral" class="hidden flex flex-col h-full">
                     <div class="mb-4"><span class="inline-block px-3 py-1 bg-slate-100 text-slate-600 rounded-full text-xs font-bold uppercase tracking-wide border border-slate-200">General</span></div>
                     <textarea id="logNoteGeneral" class="w-full flex-1 bg-slate-50 border-2 border-slate-100 p-4 rounded-2xl text-base resize-none focus:bg-white focus:border-emerald-500 transition" placeholder="Write Observation..."></textarea>
-                    <div class="mt-4 pb-4"><button onclick="LogWizard.submit()" class="w-full bg-emerald-600 text-white py-4 rounded-xl font-bold shadow-lg">Save Observation</button></div>
+                    <div class="mt-4 pb-4"><button onclick="LogWizard.submit()" id="btnSubmitGeneral" class="w-full bg-emerald-600 text-white py-4 rounded-xl font-bold shadow-lg transition">Save Observation</button></div>
                 </div>
 
                 <!-- STEP: FOCUSED INPUT (Tags) -->
@@ -189,7 +189,7 @@
                     <div id="focusedInputArea" class="hidden flex-1 flex flex-col">
                         <label class="text-xs font-bold text-slate-400 uppercase ml-1 mb-1">Observation</label>
                         <textarea id="logNoteFocused" class="w-full flex-1 bg-slate-50 border-2 border-slate-100 p-4 rounded-2xl text-base resize-none focus:bg-white focus:border-indigo-500 transition" placeholder="Details..."></textarea>
-                        <div class="mt-4 pb-4"><button onclick="LogWizard.submit()" class="w-full bg-emerald-600 text-white py-4 rounded-xl font-bold shadow-lg">Save Observation</button></div>
+                        <div class="mt-4 pb-4"><button onclick="LogWizard.submit()" id="btnSubmitFocused" class="w-full bg-emerald-600 text-white py-4 rounded-xl font-bold shadow-lg transition">Save Observation</button></div>
                     </div>
                     <div id="focusedHint" class="flex-1 flex items-center justify-center text-slate-400 text-sm italic">Select an Area above to start.</div>
                 </div>
@@ -197,7 +197,7 @@
                 <!-- STEP: PROGRESS SELECTOR -->
                 <div id="logStepProgress" class="hidden h-full flex flex-col relative">
                     <div class="flex-1 overflow-y-auto pb-24">
-                        <p class="text-xs font-bold text-slate-400 uppercase mb-3 ml-1">Update Milestones</p>
+                        <!-- Removed "Update Milestones" text per request -->
                         <div id="progressAccordion" class="space-y-2"></div>
                     </div>
                     <div id="progressFooter" class="hidden absolute bottom-0 left-0 w-full bg-white pt-4 pb-2 border-t border-slate-100">
@@ -207,12 +207,18 @@
 
                 <!-- STEP: PROGRESS NOTE -->
                 <div id="logStepProgressNote" class="hidden flex flex-col h-full">
-                    <div class="flex justify-between items-center mb-4">
-                        <span class="inline-block px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-xs font-bold uppercase tracking-wide border border-blue-200">Progress Update</span>
-                        <button onclick="LogWizard.submit()" class="text-xs font-bold text-slate-400 hover:text-slate-600">Skip Note</button>
+                    <div class="mb-4">
+                        <!-- NEW: Milestone Summary Container -->
+                        <div id="progressSummaryContainer" class="bg-blue-50 border border-blue-100 rounded-xl p-3 mb-4 max-h-40 overflow-y-auto custom-scrollbar">
+                            <!-- Populated by JS -->
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span class="inline-block px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-xs font-bold uppercase tracking-wide border border-blue-200">Progress Update</span>
+                            <button onclick="LogWizard.submit()" id="btnSkipNote" class="text-xs font-bold text-slate-400 hover:text-slate-600">Skip Note</button>
+                        </div>
                     </div>
                     <textarea id="logNoteProgress" class="w-full flex-1 bg-slate-50 border-2 border-slate-100 p-4 rounded-2xl text-base resize-none focus:bg-white focus:border-blue-500 transition" placeholder="Add optional observation..."></textarea>
-                    <div class="mt-4 pb-4"><button onclick="LogWizard.submit()" class="w-full bg-blue-600 text-white py-4 rounded-xl font-bold shadow-lg">Add Observation</button></div>
+                    <div class="mt-4 pb-4"><button onclick="LogWizard.submit()" id="btnSubmitProgress" class="w-full bg-blue-600 text-white py-4 rounded-xl font-bold shadow-lg transition">Add Observation</button></div>
                 </div>
 
             </div>
