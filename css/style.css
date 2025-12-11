@@ -1,80 +1,80 @@
 /* BABY BLOOM STYLESHEET */
 
-/* --- BASE LAYOUT --- */
 body {
-    background-color: #f8fafc; /* Slate-50 */
-    padding-bottom: 100px; /* Space for FAB */
-    -webkit-tap-highlight-color: transparent; /* Removes blue tap highlight on mobile */
+    background-color: #f8fafc;
+    padding-bottom: 100px;
+    -webkit-tap-highlight-color: transparent;
 }
 
 /* --- ANIMATIONS --- */
-.animate-fade-in { 
-    animation: fadeIn 0.5s ease-out; 
-}
+.animate-fade-in { animation: fadeIn 0.5s ease-out; }
 @keyframes fadeIn { 
     from { opacity: 0; transform: translateY(10px); } 
     to { opacity: 1; transform: translateY(0); } 
 }
 
-.animate-slide-up { 
-    animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1); 
-}
+.animate-slide-up { animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1); }
 @keyframes slideUp { 
     from { transform: translateY(100%); } 
     to { transform: translateY(0); } 
 }
 
-/* --- COMPONENTS --- */
+/* Success Pulse for Submit Button */
+@keyframes pulseGreen {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+    100% { transform: scale(1); }
+}
+.btn-success {
+    background-color: #10b981 !important; /* Emerald-500 */
+    color: white !important;
+    pointer-events: none;
+    animation: pulseGreen 0.3s ease-in-out;
+}
 
-/* Accordion Transitions */
+/* --- COMPONENT STYLES --- */
+
+/* Accordion Logic */
 .accordion-content {
     max-height: 0;
     overflow: hidden;
     transition: max-height 0.3s ease-in-out;
 }
 .accordion-open {
-    max-height: 2000px; /* Arbitrary large height to allow content to expand */
+    max-height: 3000px; /* Large enough for content */
 }
 .rotate-180 { transform: rotate(180deg); }
 .transition-transform { transition: transform 0.3s; }
 
-/* Navigation Tabs */
-.tab-active {
-    border-bottom: 2px solid #10b981; /* Emerald-500 */
-    color: #047857; /* Emerald-700 */
-    font-weight: 800;
-}
-.tab-inactive {
-    color: #94a3b8; /* Slate-400 */
-    font-weight: 500;
+/* Sticky Headers for Progress Accordion */
+.sticky-header {
+    position: sticky;
+    top: 0;
+    z-index: 20; /* Above the content */
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05); /* Slight shadow when sticking */
 }
 
-/* Floating Action Button (FAB) */
+/* Tabs */
+.tab-active { border-bottom: 3px solid #10b981; color: #047857; font-weight: 800; }
+.tab-inactive { color: #94a3b8; font-weight: 500; }
+
+/* FAB */
 .fab-menu { transition: transform 0.2s; }
 .fab-active { transform: rotate(45deg); background-color: #ef4444 !important; }
 
 /* Rating Buttons */
 .rate-btn { transition: all 0.2s; }
 .rate-btn.selected, .log-rate-btn.selected {
-    background-color: #10b981; /* Emerald-500 */
+    background-color: #10b981;
     color: white;
     border-color: #10b981;
 }
 
-/* Custom Scrollbar (Polished look for lists) */
+/* Scrollbar */
 .custom-scrollbar::-webkit-scrollbar { width: 4px; }
 .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
 .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
 
-/* --- DRAWER & UTILITY --- */
-
-/* Ensure Drawers (Review/Log) sit ON TOP of the Activity Detail modal */
-#reviewModal, #logModal {
-    z-index: 70; 
-}
-
-/* Force FontAwesome to render correctly if Tailwind overrides fonts */
-.fa-solid { 
-    font-family: "Font Awesome 6 Free"; 
-    font-weight: 900; 
-}
+/* Drawers */
+#reviewModal, #logModal { z-index: 70; }
+.fa-solid { font-family: "Font Awesome 6 Free"; font-weight: 900; }
