@@ -1,25 +1,26 @@
 /**
  * PROJECT DIRECTORY & TEXT LABELS
- * * This file serves as the Single Source of Truth for all UI text.
+ * This file serves as the Single Source of Truth for all UI text.
  * Use the map below to find the logic file associated with each text group.
  * * --- DIRECTORY MAPPING ---
- * * TXT.CORE                 -> js/core/ (utils.js, config.js, api.js)
- * * TXT.COMPONENTS.FAB       -> js/components/fab.js
+ * * TXT.CORE                     -> js/core/ (utils.js, config.js, api.js)
+ * * TXT.COMPONENTS.FAB           -> js/components/fab.js
  * * TXT.COMPONENTS.MODALS
- * .PLAN                 -> js/components/modals/plan.js
- * .REVIEW               -> js/components/modals/review.js
+ * .PLAN                     -> js/components/modals/plan.js
+ * .REVIEW                   -> js/components/modals/review.js
  * * TXT.COMPONENTS.MODALS.OBSERVATION
- * .WIZARD               -> js/components/modals/observation/wizard.js
- * .GENERAL              -> js/components/modals/observation/general.js
- * .FOCUSED              -> js/components/modals/observation/focused.js
- * .PROGRESS             -> js/components/modals/observation/progress.js
- * * TXT.VIEWS.FEED           -> js/views/feed/base.js
- * .ACTIVITY             -> js/views/feed/activity_tile.js
- * .REPORT               -> js/views/feed/report_tile.js
- * .OBSERVATION          -> js/views/feed/observation_tile.js
- * .PROGRESS             -> js/views/feed/progress_tile.js
- * .INSIGHT              -> js/views/feed/insight_tile.js
- * * TXT.VIEWS.ACTIVITY_DETAIL -> js/views/activity.js
+ * .WIZARD                   -> js/components/modals/observation/wizard.js
+ * .GENERAL                  -> js/components/modals/observation/general.js
+ * .FOCUSED                  -> js/components/modals/observation/focused.js
+ * .PROGRESS                 -> js/components/modals/observation/progress.js
+ * * TXT.VIEWS.FEED               -> js/views/feed/base.js
+ * .FILTERS                  -> (Used in index.html filter bar)
+ * .ACTIVITY                 -> js/views/feed/activity_tile.js
+ * .REPORT                   -> js/views/feed/report_tile.js
+ * .OBSERVATION              -> js/views/feed/observation_tile.js
+ * .PROGRESS                 -> js/views/feed/progress_tile.js
+ * .INSIGHT                  -> js/views/feed/insight_tile.js
+ * * TXT.VIEWS.ACTIVITY_DETAIL    -> js/views/activity.js
  * TXT.VIEWS.PROGRESS_DASHBOARD -> js/views/progress.js
  * * -------------------------
  */
@@ -53,7 +54,7 @@ const TXT = {
         
         // js/components/fab.js
         FAB: {
-            PLAN: "Activity",
+            PLAN: "Plan Activity",
             OBSERVATION: "Observation"
         },
 
@@ -146,6 +147,14 @@ const TXT = {
         FEED: {
             EMPTY: "No history yet. Start by planning an activity!",
             LOADING: "Loading timeline...",
+            
+            // New Filter Bar Labels
+            FILTERS: {
+                ALL: "All",
+                OBS: "Obs",
+                GROWTH: "Growth",
+                INSIGHTS: "Insights"
+            },
             
             // js/views/feed/activity_tile.js
             ACTIVITY: {
