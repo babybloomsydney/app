@@ -8,13 +8,12 @@ const Utils = {
     groupLibrary: (library) => {
         const grouped = {};
         library.forEach(m => {
-            // Robust Grouping: Use Config Value if key matches, else use raw domain string
-            // This handles cases where m.domain is "CL" OR "Communication & Language"
             let key = m.domain;
             
-            // Try to normalize to the Short Code if possible, based on ID
-            if(m.id) {
-                const prefix = m.id.split('-')[0];
+            // Normalize key using ID prefix if available (e.g. CL-03 -> CL)
+            if(m.id && m.id.includes('-')) {
+                const prefix = m.id.split('-')[0].trim();
+                // Only use prefix if it maps to a real domain name in Config
                 if(CONFIG.DOMAINS[prefix]) key = prefix;
             }
 
@@ -28,9 +27,9 @@ const Utils = {
     // Filter library based on domain code (For Log Modal)
     filterLibraryByDomain: (domainCode) => {
         return STATE.library.filter(m => {
-            // Match against Code (CL) or Full Name (Communication...) or ID Prefix
-            const prefix = m.id.split('-')[0];
-            return m.domain === domainCode || prefix === domainCode || CONFIG.DOMAINS[prefix] === domainCode;
+            const prefix = m.id.split('-')[0].trim();
+            // Check direct match or prefix match
+            return m.domain === domainCode || prefix === domainCode;
         });
     },
 
@@ -48,33 +47,38 @@ const Utils = {
     },
 
     // FIXED: Robust Domain Name Lookup
-    // This fixes the "undefined" issue in the Feed
+    // Prevents "undefined" by safely checking prefix, config, and library object
     getMilestoneDomain: (id) => {
         if (!id) return "General";
         
         // 1. Priority: Look up via ID Prefix (e.g. "CL" from "CL-03-A")
-        // This is the safest method as IDs are standardized.
-        const prefix = id.split('-')[0];
-        if (CONFIG.DOMAINS[prefix]) {
+        const parts = id.split('-');
+        const prefix = parts[0].trim(); 
+        
+        if (CONFIG.DOMAINS && CONFIG.DOMAINS[prefix]) {
             return CONFIG.DOMAINS[prefix];
         }
 
         // 2. Fallback: Look up via Library Object
         const m = STATE.library.find(x => x.id === id);
         if (m) {
-            // If the domain is a Key (CL), return Value.
-            if (CONFIG.DOMAINS[m.domain]) return CONFIG.DOMAINS[m.domain];
-            // If the domain is already a Full Name, return it.
+            // If m.domain is a short code (CL), lookup in Config.
+            if (CONFIG.DOMAINS && CONFIG.DOMAINS[m.domain]) return CONFIG.DOMAINS[m.domain];
+            // Otherwise return the full string stored in library (e.g. "Physical Development")
             return m.domain;
         }
 
+        // 3. Last Resort: Return the prefix itself (better than "undefined")
         return prefix || "Unknown";
     },
 
     // Convert Score Number (1-4) to Text Label
     getScoreLabel: (n) => {
         const labels = ["Unattempted", "Introduced", "Assisted", "Guided", "Independent"];
-        return labels[n] || "Unknown";
+        // Ensure n is a valid integer
+        const idx = parseInt(n);
+        if (isNaN(idx) || idx < 0 || idx >= labels.length) return "Unknown";
+        return labels[idx];
     },
 
     // Prepare Radar Chart Data
