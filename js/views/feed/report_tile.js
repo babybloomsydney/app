@@ -3,26 +3,26 @@ const FeedCard_Report = {
         const date = Utils.formatDate(item.timestamp);
         const parentId = item.refs && item.refs.length > 0 ? item.refs[0] : null;
 
-        // === CRITICAL FIX: DO NOT set any default title yet ===
-        let parentTitle = null;
+        let parentTitle = TXT.COMPONENTS.MODALS.REVIEW.HEADER; // final fallback
 
         if (parentId && STATE.feed) {
             const parent = STATE.feed.find(x => x.id === parentId);
             if (parent) {
-                const ai = parent.data?.activityJson || {};
-                parentTitle = ai.creativeName || parent.title;
+                const ai = parent.data?.activityJson;
+                // This is the key: handle PENDING case explicitly
+                if (ai && typeof ai === 'object' && ai.creativeName) {
+                    parentTitle = ai.creativeName;
+                } else if (parent.title) {
+                    parentTitle = parent.title;
+                }
+                // If still no title, keep the fallback — it will update on next render
             }
         }
 
-        // If we still have no title, fall back safely to the localized string
-        if (!parentTitle) {
-            parentTitle = TXT.COMPONENTS.MODALS.REVIEW.HEADER;
-        }
-
-        // Progress updates — safe milestone text
+        // Progress section (unchanged, safe)
         let progressHtml = "";
-        const progressItem = STATE.feed.find(x => x.type === "PROGRESS" && x.refs && x.refs.includes(item.id));
-        if (progressItem && progressItem.data?.updates) {
+        const progressItem = STATE.feed.find(x => x.type === "PROGRESS" && x.refs?.includes(item.id));
+        if (progressItem?.data?.updates?.length > 0) {
             progressHtml = `<div class="mt-3 pt-3 border-t border-slate-100"><p class="text-[10px] font-bold text-emerald-600 uppercase mb-2">${TXT.VIEWS.FEED.REPORT.LABEL_PROGRESS}</p><div class="space-y-2">`;
             progressItem.data.updates.forEach(u => {
                 const dom = Utils.getMilestoneDomain(u.id);
