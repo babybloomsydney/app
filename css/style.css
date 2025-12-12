@@ -1,9 +1,27 @@
 /* BABY BLOOM STYLESHEET */
 
+/* --- BASE LAYOUT --- */
 body {
     background-color: #f8fafc; /* Slate-50 */
-    padding-bottom: 100px; /* Space for FAB */
+    padding-bottom: 120px; /* Increased space for Bottom Nav + FAB */
     -webkit-tap-highlight-color: transparent;
+}
+
+/* --- UTILITIES --- */
+
+/* Hide Scrollbar for Filter Bar (Chrome, Safari and Opera) */
+.no-scrollbar::-webkit-scrollbar {
+    display: none;
+}
+/* Hide Scrollbar for Filter Bar (IE, Edge and Firefox) */
+.no-scrollbar {
+    -ms-overflow-style: none;  /* IE and Edge */
+    scrollbar-width: none;  /* Firefox */
+}
+
+/* Safe Area Padding for iPhone Home Bar */
+.pb-safe {
+    padding-bottom: env(safe-area-inset-bottom);
 }
 
 /* --- ANIMATIONS --- */
@@ -54,9 +72,15 @@ body {
     box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
 }
 
-/* Tabs */
-.tab-active { border-bottom: 3px solid #10b981; color: #047857; font-weight: 800; }
-.tab-inactive { color: #94a3b8; font-weight: 500; }
+/* Tabs (Legacy Top Tabs & New Bottom Nav Active State) */
+.tab-active { 
+    color: #047857; /* Emerald-700 */
+    font-weight: 800;
+}
+.tab-inactive { 
+    color: #94a3b8; /* Slate-400 */
+    font-weight: 500;
+}
 
 /* FAB */
 .fab-menu { transition: transform 0.2s; }
@@ -70,11 +94,11 @@ body {
     border-color: #10b981;
 }
 
-/* Scrollbar */
+/* Custom Scrollbar */
 .custom-scrollbar::-webkit-scrollbar { width: 4px; }
 .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
 .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
 
-/* Drawers */
+/* Drawers & Z-Index */
 #reviewModal, #logModal { z-index: 70; }
 .fa-solid { font-family: "Font Awesome 6 Free"; font-weight: 900; }
