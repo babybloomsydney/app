@@ -1,36 +1,7 @@
-const FeedCard_Activity = {
+const FeedCard_Insight = {
     render: (item) => {
         const date = Utils.formatDate(item.timestamp);
-        const ai = item.data.activityJson || {}; 
-        
-        const title = ai.creativeName || item.title || "Generating Activity...";
-        const desc = ai.activityDescription || "Waiting for AI to design your plan...";
-        const rec = ai.recommendedLine || "";
-        
-        const isPending = item.data.activityJson === "PENDING_AI_RESPONSE";
-
-        if(isPending) {
-            return `
-            <div class="feed-item bg-white p-5 rounded-2xl shadow-sm border border-slate-100 mb-4 opacity-70">
-                <div class="flex items-center gap-2 text-indigo-500 font-bold text-xs mb-2">
-                    <i class="fa-solid fa-circle-notch fa-spin"></i> GENERATING...
-                </div>
-                <h3 class="font-bold text-slate-800">Planning Activity...</h3>
-            </div>`;
-        }
-
-        return `
-        <div class="feed-item bg-white p-5 rounded-2xl shadow-sm border border-slate-100 mb-4 relative overflow-hidden group">
-            <div class="flex justify-between items-center mb-2">
-                <span class="text-[10px] font-bold text-indigo-500 uppercase tracking-wide">Activity Plan</span>
-                <span class="text-[10px] text-gray-400">${date}</span>
-            </div>
-            <h3 class="font-bold text-slate-800 text-lg leading-tight mb-1">${title}</h3>
-            <p class="text-xs text-indigo-600 font-bold mb-3">${rec}</p>
-            <p class="text-sm text-slate-500 leading-relaxed mb-4 line-clamp-3">${desc}</p>
-            <button onclick="ActivityView.open('${item.id}')" class="w-full py-3 bg-slate-50 border border-slate-200 text-slate-700 rounded-xl text-sm font-bold hover:bg-slate-100 transition">
-                View Activity
-            </button>
-        </div>`;
+        const text = item.data.text || "No insight available.";
+        return `<div class="feed-item bg-amber-50 p-5 rounded-2xl shadow-sm border border-amber-100 mb-4"><div class="flex justify-between items-center mb-3"><div class="flex items-center gap-2"><div class="w-6 h-6 rounded-full bg-amber-200 text-amber-700 flex items-center justify-center text-xs"><i class="fa-solid fa-lightbulb"></i></div><span class="text-[10px] font-bold text-amber-600 uppercase tracking-wide">AI Insight</span></div><span class="text-[10px] text-amber-400">${date}</span></div><div class="mb-1"><p class="text-sm text-slate-700 leading-relaxed font-medium">"${text}"</p></div></div>`;
     }
 };
