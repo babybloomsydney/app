@@ -13,17 +13,27 @@ const ReviewModal = {
     open: (activityId) => {
         const T = TXT.COMPONENTS.MODALS.REVIEW;
         
-        // 1. Store ID
-        ReviewModal.state.activityId = activityId;
-        console.log("ReviewModal Opened for:", activityId); 
+        // 1. Resolve and Store ID immediately
+        // Priority: Passed Argument -> Global State -> Error
+        const targetId = activityId || STATE.reviewActivityId;
+        
+        if (!targetId) {
+            console.error("CRITICAL: ReviewModal opened without an Activity ID");
+            return alert("System Error: Cannot identify the activity. Please refresh and try again.");
+        }
 
-        const act = STATE.feed.find(x => x.id === activityId);
+        ReviewModal.state.activityId = targetId;
+        // Also ensure global state is synced just in case
+        STATE.reviewActivityId = targetId; 
+
+        // 2. Find Data
+        const act = STATE.feed.find(x => x.id === targetId);
         const ai = act?.data?.activityJson || {};
         
-        // 2. Set Header
+        // 3. Render Header
         document.getElementById('reviewTitle').innerText = ai.creativeName || T.HEADER;
         
-        // 3. Build Objectives List
+        // 4. Render Objectives
         const container = document.getElementById('reviewObjectives');
         container.innerHTML = "";
         
@@ -54,7 +64,7 @@ const ReviewModal = {
             </div>`;
         });
         
-        // 4. Reset Note Input
+        // 5. Reset Note
         const noteInput = document.getElementById('reviewNote');
         noteInput.value = "";
         noteInput.placeholder = T.PLACEHOLDER_NOTES;
@@ -66,7 +76,6 @@ const ReviewModal = {
         const grid = btn.parentElement;
         grid.querySelectorAll('button').forEach(b => b.classList.remove('selected'));
         btn.classList.add('selected');
-        // Store on button for scraping later
         btn.dataset.id = id; 
         btn.dataset.score = score;
     },
@@ -74,11 +83,14 @@ const ReviewModal = {
     submit: async () => {
         const T = TXT.COMPONENTS.MODALS.REVIEW;
         
-        // Safety Check
-        if (!ReviewModal.state.activityId) {
+        // CRITICAL CHECK: Get ID from Local State OR Global State
+        const finalActivityId = ReviewModal.state.activityId || STATE.reviewActivityId;
+
+        if (!finalActivityId) {
              return alert("Error: Activity ID missing. Please close and try again.");
         }
 
+        // Collect Ratings
         const ratings = [];
         document.querySelectorAll('#reviewObjectives .rate-btn.selected').forEach(b => {
             ratings.push({id: b.dataset.id, score: parseInt(b.dataset.score)});
@@ -86,23 +98,22 @@ const ReviewModal = {
         
         if (ratings.length === 0) return alert(T.ERROR_NO_SELECTION);
 
-        // Robust Button Selector (Try ID first, fallback to querySelector)
-        const btn = document.getElementById('reviewSubmitBtn') || document.querySelector('#reviewModal button:last-of-type');
-        const oldText = btn ? btn.innerText : "Submit"; 
-        
+        // UI Feedback
+        const btn = document.getElementById('reviewSubmitBtn') || document.querySelector('#reviewModal button.submit-btn'); 
         if(btn) {
             btn.innerText = T.BTN_SUBMITTING; 
             btn.disabled = true;
         }
         
-        // Call API
+        // API Call
         await API.submitReport(
             STATE.child.childId, 
-            ReviewModal.state.activityId, 
+            finalActivityId,  // <--- GUARANTEED ID
             ratings, 
             document.getElementById('reviewNote').value
         );
         
+        // Reset & Close
         if(btn) {
             btn.innerText = T.BTN_SUBMIT; 
             btn.disabled = false;
@@ -110,6 +121,7 @@ const ReviewModal = {
         
         Modals.close(); 
         
+        // Refresh UI
         if (typeof FeedView !== 'undefined') FeedView.render();
         if (typeof ProgressView !== 'undefined') ProgressView.render();
     }
