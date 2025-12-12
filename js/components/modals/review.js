@@ -13,8 +13,7 @@ const ReviewModal = {
     open: (activityId) => {
         const T = TXT.COMPONENTS.MODALS.REVIEW;
         
-        // 1. Resolve and Store ID immediately
-        // Priority: Passed Argument -> Global State -> Error
+        // 1. Resolve ID
         const targetId = activityId || STATE.reviewActivityId;
         
         if (!targetId) {
@@ -22,18 +21,24 @@ const ReviewModal = {
             return alert("System Error: Cannot identify the activity. Please refresh and try again.");
         }
 
+        // 2. Persist ID (State + DOM Backup)
         ReviewModal.state.activityId = targetId;
-        // Also ensure global state is synced just in case
-        STATE.reviewActivityId = targetId; 
-
-        // 2. Find Data
-        const act = STATE.feed.find(x => x.id === targetId);
-        const ai = act?.data?.activityJson || {};
+        STATE.reviewActivityId = targetId;
         
-        // 3. Render Header
+        // NUCLEAR BACKUP: Save ID to the DOM element itself
+        const modalEl = document.getElementById('reviewModal');
+        if(modalEl) modalEl.dataset.activityId = targetId;
+
+        // 3. Find Data
+        const act = STATE.feed.find(x => x.id === targetId);
+        if (!act) return console.error("Activity not found in feed:", targetId);
+        
+        const ai = act.data?.activityJson || {};
+        
+        // 4. Render Header
         document.getElementById('reviewTitle').innerText = ai.creativeName || T.HEADER;
         
-        // 4. Render Objectives
+        // 5. Render Objectives
         const container = document.getElementById('reviewObjectives');
         container.innerHTML = "";
         
@@ -64,7 +69,7 @@ const ReviewModal = {
             </div>`;
         });
         
-        // 5. Reset Note
+        // 6. Reset Note
         const noteInput = document.getElementById('reviewNote');
         noteInput.value = "";
         noteInput.placeholder = T.PLACEHOLDER_NOTES;
@@ -83,10 +88,12 @@ const ReviewModal = {
     submit: async () => {
         const T = TXT.COMPONENTS.MODALS.REVIEW;
         
-        // CRITICAL CHECK: Get ID from Local State OR Global State
-        const finalActivityId = ReviewModal.state.activityId || STATE.reviewActivityId;
+        // RECOVERY STRATEGY: Try State -> Try Global -> Try DOM
+        const domId = document.getElementById('reviewModal').dataset.activityId;
+        const finalActivityId = ReviewModal.state.activityId || STATE.reviewActivityId || domId;
 
         if (!finalActivityId) {
+             console.error("Submit Failed: No Activity ID found in State or DOM.");
              return alert("Error: Activity ID missing. Please close and try again.");
         }
 
@@ -108,7 +115,7 @@ const ReviewModal = {
         // API Call
         await API.submitReport(
             STATE.child.childId, 
-            finalActivityId,  // <--- GUARANTEED ID
+            finalActivityId, 
             ratings, 
             document.getElementById('reviewNote').value
         );
