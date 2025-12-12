@@ -6,33 +6,71 @@
 const FeedView = {
     render: async () => {
         const c = document.getElementById('feedContainer');
-        if(!c) return;
+        if (!c) return;
 
-        // Loader
-        if(c.innerHTML === "") c.innerHTML = '<div class="text-center py-10 text-gray-400"><i class="fa-solid fa-circle-notch fa-spin text-2xl"></i></div>';
+        // 1. Show Loader
+        c.innerHTML = '<div class="text-center py-10 text-gray-400"><i class="fa-solid fa-circle-notch fa-spin text-2xl"></i><p class="text-xs mt-2">Loading timeline...</p></div>';
         
-        const res = await API.fetchFeed(STATE.child.childId);
-        c.innerHTML = "";
-        
-        if (res.status === "success") {
-            STATE.feed = res.data;
-            if (STATE.feed.length === 0) {
-                c.innerHTML = '<div class="text-center py-10 text-gray-400">No history yet.</div>';
-                return;
-            }
+        try {
+            // 2. Fetch Data
+            const res = await API.fetchFeed(STATE.child.childId);
             
-            // Loop and Delegate
-            STATE.feed.forEach(item => {
-                if (!item.type) return;
+            // 3. Clear Loader
+            c.innerHTML = "";
+            
+            if (res.status === "success") {
+                STATE.feed = res.data;
+                console.log("Feed Data Loaded:", STATE.feed); // DEBUG: Check console to see your data
+                
+                if (STATE.feed.length === 0) {
+                    c.innerHTML = '<div class="text-center py-10 text-gray-400">No history yet. Start by planning an activity!</div>';
+                    return;
+                }
+                
+                // 4. Build HTML (Buffered)
+                let feedHtml = "";
+                
+                STATE.feed.forEach(item => {
+                    // Safety: Ensure type exists
+                    if (!item.type) return;
 
-                if (item.type === "ACTIVITY") c.innerHTML += FeedCard_Activity.render(item);
-                else if (item.type === "REPORT") c.innerHTML += FeedCard_Report.render(item);
-                else if (item.type === "OBSERVATION") c.innerHTML += FeedCard_Observation.render(item);
-                else if (item.type === "PROGRESS") c.innerHTML += FeedCard_Progress.render(item);
-                else if (item.type === "INSIGHT") c.innerHTML += FeedCard_Insight.render(item);
-            });
-        } else {
-            c.innerHTML = '<div class="text-center py-10 text-red-400">Failed to load feed.</div>';
+                    try {
+                        let cardHtml = "";
+                        
+                        // Delegate to specific renderers
+                        if (item.type === "ACTIVITY" && typeof FeedCard_Activity !== 'undefined') {
+                            cardHtml = FeedCard_Activity.render(item);
+                        } 
+                        else if (item.type === "REPORT" && typeof FeedCard_Report !== 'undefined') {
+                            cardHtml = FeedCard_Report.render(item);
+                        } 
+                        else if (item.type === "OBSERVATION" && typeof FeedCard_Observation !== 'undefined') {
+                            cardHtml = FeedCard_Observation.render(item);
+                        } 
+                        else if (item.type === "PROGRESS" && typeof FeedCard_Progress !== 'undefined') {
+                            cardHtml = FeedCard_Progress.render(item);
+                        } 
+                        else if (item.type === "INSIGHT" && typeof FeedCard_Insight !== 'undefined') {
+                            cardHtml = FeedCard_Insight.render(item);
+                        }
+                        
+                        feedHtml += cardHtml;
+
+                    } catch (err) {
+                        console.error(`Error rendering card [${item.id}]:`, err);
+                        // We skip the broken card but continue the loop!
+                    }
+                });
+
+                // 5. Inject Content
+                c.innerHTML = feedHtml;
+
+            } else {
+                c.innerHTML = `<div class="text-center py-10 text-red-400">Unable to load feed.<br><span class="text-xs">${res.message}</span></div>`;
+            }
+        } catch (e) {
+            console.error("FeedView Fatal Error:", e);
+            c.innerHTML = '<div class="text-center py-10 text-red-400">Application Error. Check console.</div>';
         }
     }
 };
