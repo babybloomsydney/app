@@ -1,36 +1,25 @@
-const FeedCard_Activity = {
+const FeedCard_Report = {
     render: (item) => {
         const date = Utils.formatDate(item.timestamp);
-        const ai = item.data.activityJson || {}; 
-        
-        const title = ai.creativeName || item.title || "Generating Activity...";
-        const desc = ai.activityDescription || "Waiting for AI to design your plan...";
-        const rec = ai.recommendedLine || "";
-        
-        const isPending = item.data.activityJson === "PENDING_AI_RESPONSE";
-
-        if(isPending) {
-            return `
-            <div class="feed-item bg-white p-5 rounded-2xl shadow-sm border border-slate-100 mb-4 opacity-70">
-                <div class="flex items-center gap-2 text-indigo-500 font-bold text-xs mb-2">
-                    <i class="fa-solid fa-circle-notch fa-spin"></i> GENERATING...
-                </div>
-                <h3 class="font-bold text-slate-800">Planning Activity...</h3>
-            </div>`;
+        const parentId = item.refs ? item.refs[0] : null;
+        let parentTitle = "Activity Report";
+        if(parentId && STATE.feed) {
+            const p = STATE.feed.find(x => x.id === parentId);
+            if(p) parentTitle = (p.data.activityJson?.creativeName) || p.title;
         }
 
-        return `
-        <div class="feed-item bg-white p-5 rounded-2xl shadow-sm border border-slate-100 mb-4 relative overflow-hidden group">
-            <div class="flex justify-between items-center mb-2">
-                <span class="text-[10px] font-bold text-indigo-500 uppercase tracking-wide">Activity Plan</span>
-                <span class="text-[10px] text-gray-400">${date}</span>
-            </div>
-            <h3 class="font-bold text-slate-800 text-lg leading-tight mb-1">${title}</h3>
-            <p class="text-xs text-indigo-600 font-bold mb-3">${rec}</p>
-            <p class="text-sm text-slate-500 leading-relaxed mb-4 line-clamp-3">${desc}</p>
-            <button onclick="ActivityView.open('${item.id}')" class="w-full py-3 bg-slate-50 border border-slate-200 text-slate-700 rounded-xl text-sm font-bold hover:bg-slate-100 transition">
-                View Activity
-            </button>
-        </div>`;
+        const progressItem = STATE.feed.find(x => x.type === "PROGRESS" && x.refs && x.refs.includes(item.id));
+        let progressHtml = "";
+        
+        if (progressItem && progressItem.data.updates) {
+            progressHtml = `<div class="mt-3 pt-3 border-t border-slate-100"><p class="text-[10px] font-bold text-emerald-600 uppercase mb-2">Progress Update</p><div class="space-y-2">`;
+            progressItem.data.updates.forEach(u => {
+                const dom = Utils.getMilestoneDomain(u.id);
+                progressHtml += `<div class="flex justify-between items-center"><div class="flex items-center gap-2 truncate w-3/4"><span class="text-[10px] bg-slate-100 text-slate-500 px-1 rounded font-bold">${dom}</span><span class="text-xs text-slate-600 truncate">${Utils.getMilestoneDesc(u.id)}</span></div><span class="text-[10px] font-bold text-emerald-600 bg-emerald-50 px-2 py-1 rounded shrink-0">${Utils.getScoreLabel(u.score)}</span></div>`;
+            });
+            progressHtml += `</div></div>`;
+        }
+
+        return `<div class="feed-item bg-white p-5 rounded-2xl shadow-sm border border-slate-100 mb-4"><div class="flex justify-between items-center mb-1"><div class="flex items-center gap-2"><div class="w-6 h-6 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center text-xs"><i class="fa-solid fa-clipboard-check"></i></div><span class="text-[10px] font-bold text-slate-400 uppercase tracking-wide">Activity Completed</span></div><span class="text-[10px] text-gray-400">${date}</span></div><h3 class="font-bold text-slate-800 text-lg mb-2 leading-tight">${parentTitle}</h3>${item.data.feedback ? `<p class="text-sm text-slate-600 leading-relaxed mb-3">${item.data.feedback}</p>` : ''}${progressHtml}${parentId ? `<button onclick="ActivityView.open('${parentId}')" class="mt-4 text-xs font-bold text-blue-500 hover:text-blue-700 flex items-center gap-1 transition">View Activity Details <i class="fa-solid fa-chevron-right text-[10px]"></i></button>` : ''}</div>`;
     }
 };
