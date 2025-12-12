@@ -5,7 +5,7 @@
 const ObsGeneral = {
     submit: async () => {
         const note = document.getElementById('logNoteGeneral').value;
-        if(!note.trim()) return alert("Please write a observation.");
+        if(!note.trim()) return alert("Please write an observation.");
         const btn = document.getElementById('btnSubmitGeneral');
         const oldText = btn.innerText;
         btn.innerHTML = `<i class="fa-solid fa-check mr-2"></i> ${TXT.COMPONENTS.MODALS.OBSERVATION.SUCCESS_MSG}`;
