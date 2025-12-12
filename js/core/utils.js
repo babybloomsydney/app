@@ -11,9 +11,10 @@ const Utils = {
         library.forEach(m => {
             let key = m.domain;
             
-            // Normalize key using ID prefix if available
+            // Normalize key using ID prefix if available (e.g. CL-03 -> CL)
             if(m.id && m.id.includes('-')) {
                 const prefix = m.id.split('-')[0].trim();
+                // Only use prefix if it maps to a real domain name in Config
                 if(CONFIG.DOMAINS[prefix]) key = prefix;
             }
 
@@ -24,10 +25,11 @@ const Utils = {
         return grouped;
     },
 
-    // Filter library based on domain code
+    // Filter library based on domain code (For Log Modal)
     filterLibraryByDomain: (domainCode) => {
         return STATE.library.filter(m => {
             const prefix = m.id.split('-')[0].trim();
+            // Check direct match or prefix match
             return m.domain === domainCode || prefix === domainCode;
         });
     },
@@ -42,14 +44,15 @@ const Utils = {
     // Find a milestone description by ID
     getMilestoneDesc: (id) => {
         const m = STATE.library.find(x => x.id === id);
-        return m ? m.desc : id;
+        return m ? m.desc : (id || TXT.CORE.UNKNOWN_SKILL);
     },
 
-    // Find a milestone's Domain Name by ID
+    // FIXED: Robust Domain Name Lookup
+    // Prevents "undefined" by safely checking prefix, config, and library object
     getMilestoneDomain: (id) => {
         if (!id) return TXT.CORE.UNKNOWN_DOMAIN; // "General"
         
-        // 1. Priority: Look up via ID Prefix
+        // 1. Priority: Look up via ID Prefix (e.g. "CL" from "CL-03-A")
         const parts = id.split('-');
         const prefix = parts[0].trim(); 
         
@@ -60,7 +63,9 @@ const Utils = {
         // 2. Fallback: Look up via Library Object
         const m = STATE.library.find(x => x.id === id);
         if (m) {
+            // If m.domain is a short code (CL), lookup in Config.
             if (CONFIG.DOMAINS && CONFIG.DOMAINS[m.domain]) return CONFIG.DOMAINS[m.domain];
+            // Otherwise return the full string stored in library (e.g. "Physical Development")
             return m.domain;
         }
 
@@ -78,7 +83,7 @@ const Utils = {
 
     // Prepare Radar Chart Data
     prepChartData: (stats) => {
-        const labels = Object.keys(CONFIG.DOMAINS).map(k => k);
+        const labels = Object.keys(CONFIG.DOMAINS).map(k => k); // Short codes for chart
         const data = Object.keys(CONFIG.DOMAINS).map(k => stats[k]?.percent || 0);
         return { labels, data };
     }
