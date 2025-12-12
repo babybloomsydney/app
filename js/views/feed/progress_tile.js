@@ -1,36 +1,14 @@
-const FeedCard_Activity = {
+const FeedCard_Progress = {
     render: (item) => {
+        if(item.refs && item.refs.length > 0) return ""; 
         const date = Utils.formatDate(item.timestamp);
-        const ai = item.data.activityJson || {}; 
+        const noteHtml = item.data.note ? `<div class="mb-3 pb-3 border-b border-slate-100"><p class="text-sm text-slate-600 italic">${item.data.note}</p></div>` : "";
+        let list = "";
+        (item.data.updates||[]).forEach(u => {
+            const dom = Utils.getMilestoneDomain(u.id);
+            list += `<div class="py-2 border-b border-slate-100 last:border-0"><div class="flex justify-between items-start"><div class="flex items-start gap-2 pr-2 overflow-hidden"><span class="text-[10px] bg-slate-100 text-slate-500 px-1 rounded font-bold whitespace-nowrap mt-0.5">${dom}</span><p class="text-xs font-bold text-slate-700 leading-snug truncate">${Utils.getMilestoneDesc(u.id)}</p></div><span class="text-[10px] font-bold text-emerald-600 bg-emerald-50 px-2 py-1 rounded shrink-0">${Utils.getScoreLabel(u.score)}</span></div></div>`;
+        });
         
-        const title = ai.creativeName || item.title || "Generating Activity...";
-        const desc = ai.activityDescription || "Waiting for AI to design your plan...";
-        const rec = ai.recommendedLine || "";
-        
-        const isPending = item.data.activityJson === "PENDING_AI_RESPONSE";
-
-        if(isPending) {
-            return `
-            <div class="feed-item bg-white p-5 rounded-2xl shadow-sm border border-slate-100 mb-4 opacity-70">
-                <div class="flex items-center gap-2 text-indigo-500 font-bold text-xs mb-2">
-                    <i class="fa-solid fa-circle-notch fa-spin"></i> GENERATING...
-                </div>
-                <h3 class="font-bold text-slate-800">Planning Activity...</h3>
-            </div>`;
-        }
-
-        return `
-        <div class="feed-item bg-white p-5 rounded-2xl shadow-sm border border-slate-100 mb-4 relative overflow-hidden group">
-            <div class="flex justify-between items-center mb-2">
-                <span class="text-[10px] font-bold text-indigo-500 uppercase tracking-wide">Activity Plan</span>
-                <span class="text-[10px] text-gray-400">${date}</span>
-            </div>
-            <h3 class="font-bold text-slate-800 text-lg leading-tight mb-1">${title}</h3>
-            <p class="text-xs text-indigo-600 font-bold mb-3">${rec}</p>
-            <p class="text-sm text-slate-500 leading-relaxed mb-4 line-clamp-3">${desc}</p>
-            <button onclick="ActivityView.open('${item.id}')" class="w-full py-3 bg-slate-50 border border-slate-200 text-slate-700 rounded-xl text-sm font-bold hover:bg-slate-100 transition">
-                View Activity
-            </button>
-        </div>`;
+        return `<div class="feed-item bg-white p-5 rounded-2xl shadow-sm border border-slate-100 mb-4"><div class="flex justify-between items-center mb-3"><div class="flex items-center gap-2"><div class="w-6 h-6 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center text-xs"><i class="fa-solid fa-arrow-trend-up"></i></div><span class="text-[10px] font-bold text-slate-400 uppercase tracking-wide">Growth</span></div><span class="text-[10px] text-gray-400">${date}</span></div>${noteHtml}<div class="bg-white rounded-xl border border-slate-100 px-3">${list}</div></div>`;
     }
 };
