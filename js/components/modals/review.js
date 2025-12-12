@@ -1,32 +1,44 @@
 /**
- * REVIEW MODAL * REVIEW MODAL
+ * REVIEW MODAL
  * Handles the Activity Reporting logic.
+ * Dependency: js/core/labels.js (TXT)
  */
 
-const ReviewModal = {const ReviewModal = {
+const ReviewModal = {
     state: {
         activityId: null,
         ratings: []
     },
 
     open: (activityId) => {
-        ReviewModal.state.activityId = activityId;        ReviewModal.state.activityId = activityId;
+        const T = TXT.COMPONENTS.MODALS.REVIEW;
+        
+        // 1. Store ID
+        ReviewModal.state.activityId = activityId;
+        console.log("ReviewModal Opened for:", activityId); 
+
         const act = STATE.feed.find(x => x.id === activityId);
         const ai = act?.data?.activityJson || {};
         
-        document.getElementById('reviewTitle').innerText = ai.creativeName || "Activity Report";        document.getElementById('reviewTitle').innerText = ai.creativeName || "Activity Report";
-        const container = document.getElementById('reviewObjectives');        const container = document.getElementById('reviewObjectives');
+        // 2. Set Header
+        document.getElementById('reviewTitle').innerText = ai.creativeName || T.HEADER;
+        
+        // 3. Build Objectives List
+        const container = document.getElementById('reviewObjectives');
         container.innerHTML = "";
         
         const levels = [
-            {l:"Introduced",s:1}, {l:"Assisted",s:2}, {l:"Guided",s:3}, {l:"Independent",s:4}
+            { l: TXT.CORE.SCORES[1], s: 1 },
+            { l: TXT.CORE.SCORES[2], s: 2 },
+            { l: TXT.CORE.SCORES[3], s: 3 },
+            { l: TXT.CORE.SCORES[4], s: 4 }
         ];
 
         (act.data.milestoneIds || []).forEach(mid => {
-            const m = STATE.library.find(x => x.id === mid) || {desc: mid, domain: "Skill"};
+            const m = STATE.library.find(x => x.id === mid) || {desc: mid, domain: TXT.CORE.UNKNOWN_SKILL};
             
             const buttons = levels.map(lvl => `
-                <button onclick="ReviewModal.rate(this, '${mid}', ${lvl.s})"                 <button onclick="ReviewModal.rate(this, '${mid}', ${lvl.s})" 
+                <button onclick="ReviewModal.rate(this, '${mid}', ${lvl.s})" 
                         class="rate-btn w-full py-3 px-1 rounded border border-slate-200 text-[10px] font-bold text-slate-500 hover:bg-slate-50 transition uppercase tracking-wide">
                     ${lvl.l}
                 </button>
@@ -42,8 +54,12 @@ const ReviewModal = {const ReviewModal = {
             </div>`;
         });
         
-        document.getElementById('reviewNote').value = "";        document.getElementById('reviewNote').value = "";
-        Modals.open('review');        Modals.open('review');
+        // 4. Reset Note Input
+        const noteInput = document.getElementById('reviewNote');
+        noteInput.value = "";
+        noteInput.placeholder = T.PLACEHOLDER_NOTES;
+
+        Modals.open('review');
     },
 
     rate: (btn, id, score) => {
@@ -56,20 +72,42 @@ const ReviewModal = {const ReviewModal = {
     },
 
     submit: async () => {
+        const T = TXT.COMPONENTS.MODALS.REVIEW;
+        
+        // Safety Check
+        if (!ReviewModal.state.activityId) {
+             return alert("Error: Activity ID missing. Please close and try again.");
+        }
+
         const ratings = [];
-        document.querySelectorAll('#reviewObjectives .rate-btn.selected').forEach(b => {        document.querySelectorAll('#reviewObjectives .rate-btn.selected').forEach(b => {
+        document.querySelectorAll('#reviewObjectives .rate-btn.selected').forEach(b => {
             ratings.push({id: b.dataset.id, score: parseInt(b.dataset.score)});
         });
         
-        if (ratings.length === 0) return alert("Please select a mastery level for at least one skill.");
+        if (ratings.length === 0) return alert(T.ERROR_NO_SELECTION);
 
-        const btn = document.querySelector('#reviewModal button.submit-btn'); // Added class in HTML        const btn = document.querySelector('#reviewModal button.submit-btn'); // Added class in HTML
-        const oldText = btn.innerText;
-        btn.innerText = "Submitting..."; btn.disabled = true;
+        // Robust Button Selector (Try ID first, fallback to querySelector)
+        const btn = document.getElementById('reviewSubmitBtn') || document.querySelector('#reviewModal button:last-of-type');
+        const oldText = btn ? btn.innerText : "Submit"; 
         
-        await API.submitReport(STATE.child.childId, ReviewModal.state.activityId, ratings, document.getElementById('reviewNote').value);        await API.submitReport(STATE.child.childId, ReviewModal.state.activityId, ratings, document.getElementById('reviewNote').value);
+        if(btn) {
+            btn.innerText = T.BTN_SUBMITTING; 
+            btn.disabled = true;
+        }
         
-        btn.innerText = oldText; btn.disabled = false;
+        // Call API
+        await API.submitReport(
+            STATE.child.childId, 
+            ReviewModal.state.activityId, 
+            ratings, 
+            document.getElementById('reviewNote').value
+        );
+        
+        if(btn) {
+            btn.innerText = T.BTN_SUBMIT; 
+            btn.disabled = false;
+        }
+        
         Modals.close(); 
         
         if (typeof FeedView !== 'undefined') FeedView.render();
