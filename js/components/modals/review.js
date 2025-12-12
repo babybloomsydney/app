@@ -15,7 +15,6 @@ const ReviewModal = {
         const act = STATE.feed.find(x => x.id === activityId);
         const ai = act?.data?.activityJson || {};
 
-        // Header title with fallback
         document.getElementById('reviewTitle').innerText = 
             ai.creativeName || TXT.COMPONENTS.MODALS.REVIEW.HEADER;
 
@@ -31,7 +30,7 @@ const ReviewModal = {
 
         (act.data.milestoneIds || []).forEach(mid => {
             const m = STATE.library.find(x => x.id === mid) || { desc: mid, domain: TXT.CORE.UNKNOWN_SKILL };
-            const desc = Utils.getMilestoneDesc(mid); // Safe human text
+            const desc = Utils.getMilestoneDesc(mid); // Safe text
 
             const buttons = levels.map(lvl => `
                 <button onclick="ReviewModal.rate(this, '${mid}', ${lvl.s})"
@@ -84,27 +83,19 @@ const ReviewModal = {
         btn.innerText = TXT.COMPONENTS.MODALS.REVIEW.BTN_SUBMITTING;
         btn.disabled = true;
 
-        try {
-            // THIS IS THE CRITICAL FIX: send refs so the report links back to the activity
-            const success = await API.submitReport(
-                STATE.child.childId,
-                ReviewModal.state.activityId,
-                ratings,
-                document.getElementById('reviewNote').value,
-                [ReviewModal.state.activityId]  // ← refs array with the activity ID
-            );
+        // THIS IS YOUR ORIGINAL WORKING CALL — DO NOT ADD 5TH PARAM
+        await API.submitReport(
+            STATE.child.childId,
+            ReviewModal.state.activityId,
+            ratings,
+            document.getElementById('reviewNote').value
+        );
 
-            if (success) {
-                Modals.close();
-                if (typeof FeedView !== 'undefined') FeedView.render();
-                if (typeof ProgressView !== 'undefined') ProgressView.render();
-            }
-        } catch (err) {
-            console.error("Report submit failed:", err);
-            alert("Failed to submit report. Check connection.");
-        } finally {
-            btn.innerText = oldText;
-            btn.disabled = false;
-        }
+        btn.innerText = oldText;
+        btn.disabled = false;
+        Modals.close();
+
+        if (typeof FeedView !== 'undefined') FeedView.render();
+        if (typeof ProgressView !== 'undefined') ProgressView.render();
     }
 };
