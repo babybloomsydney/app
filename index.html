@@ -5,13 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Baby Bloom</title>
     
-    <!-- TAILWIND -->
+    <!-- LIBRARIES -->
     <script src="https://cdn.tailwindcss.com"></script>
-    
-    <!-- FONT AWESOME -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
-    
-    <!-- CHARTS -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     
     <!-- STYLES -->
@@ -35,14 +31,17 @@
     </div>
 
     <!-- 2. MAIN CONTAINER -->
-    <div class="max-w-md mx-auto mt-24 px-4 pb-32">
+    <div class="max-w-md mx-auto mt-24 px-4 pb-24">
         
         <!-- FEED VIEW -->
         <div id="view-feed" class="view-section space-y-4 min-h-[50vh]">
             
-            <!-- NEW: Filter Bar (Sticky) -->
-            <div class="sticky top-20 z-30 bg-slate-50 pt-2 pb-2 -mx-4 px-4 flex gap-2 overflow-x-auto no-scrollbar" id="feedFilterBar">
+            <!-- FEED FILTERS (Sticky Top) -->
+            <!-- Updated: Added Activities tab, centered content -->
+            <div class="sticky top-20 z-30 bg-slate-50 pt-2 pb-2 -mx-4 px-4 flex gap-2 overflow-x-auto no-scrollbar justify-start sm:justify-center" id="feedFilterBar">
                 <button onclick="FeedView.filter('All')" class="filter-pill active bg-slate-800 text-white px-4 py-1.5 rounded-full text-xs font-bold shadow-md transition whitespace-nowrap ring-1 ring-slate-800">All</button>
+                <!-- New Activities Tab -->
+                <button onclick="FeedView.filter('Activities')" class="filter-pill bg-white text-slate-500 border border-slate-200 px-4 py-1.5 rounded-full text-xs font-bold shadow-sm transition whitespace-nowrap">Activities</button>
                 <button onclick="FeedView.filter('Obs')" class="filter-pill bg-white text-slate-500 border border-slate-200 px-4 py-1.5 rounded-full text-xs font-bold shadow-sm transition whitespace-nowrap">Obs</button>
                 <button onclick="FeedView.filter('Growth')" class="filter-pill bg-white text-slate-500 border border-slate-200 px-4 py-1.5 rounded-full text-xs font-bold shadow-sm transition whitespace-nowrap">Growth</button>
                 <button onclick="FeedView.filter('Insight')" class="filter-pill bg-white text-slate-500 border border-slate-200 px-4 py-1.5 rounded-full text-xs font-bold shadow-sm transition whitespace-nowrap">Insights</button>
@@ -78,13 +77,12 @@
     <!-- 4. BOTTOM NAV (New) -->
     <div class="fixed bottom-0 w-full z-40 bg-white border-t border-slate-100 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.02)] pb-safe">
         <div class="max-w-md mx-auto grid grid-cols-2 h-16">
-            <button onclick="Router.navigate('feed')" id="nav-feed" class="nav-item flex flex-col items-center justify-center text-emerald-600 transition">
-                <i class="fa-solid fa-house text-xl mb-1"></i>
-                <span class="text-[10px] font-bold">Home</span>
+            <!-- Removed Text spans, relying on flex properties in CSS/Tailwind for centering -->
+            <button onclick="Router.navigate('feed')" id="nav-feed" class="nav-item flex flex-col items-center justify-center text-emerald-600 transition h-full w-full">
+                <i class="fa-solid fa-house text-2xl"></i>
             </button>
-            <button onclick="Router.navigate('progress')" id="nav-progress" class="nav-item flex flex-col items-center justify-center text-slate-300 hover:text-slate-500 transition">
-                <i class="fa-solid fa-chart-pie text-xl mb-1"></i>
-                <span class="text-[10px] font-bold">Progress</span>
+            <button onclick="Router.navigate('progress')" id="nav-progress" class="nav-item flex flex-col items-center justify-center text-slate-300 hover:text-slate-500 transition h-full w-full">
+                <i class="fa-solid fa-chart-pie text-2xl"></i>
             </button>
         </div>
     </div>
