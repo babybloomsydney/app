@@ -65,17 +65,25 @@ const FeedView = {
         return data.filter(item => {
             // Tab: ALL (The curated story)
             if (mode === 'All') {
-                // Always show major events
+                // 1. Always show major events
                 if (item.type === 'ACTIVITY' || item.type === 'REPORT' || item.type === 'INSIGHT') return true;
                 
-                // Show Ad-Hoc Observations
-                if (item.type === 'OBSERVATION' && item.context === 'ADHOC') return true;
+                // 2. Filter Observations
+                // Show if ADHOC (or missing context). HIDE if part of Activity or Assessment.
+                if (item.type === 'OBSERVATION') {
+                    if (item.context === 'ACTIVITY') return false;   // Hidden (Shown in Report)
+                    if (item.context === 'ASSESSMENT') return false; // Hidden (Shown in Progress Card)
+                    return true; // Show Adhoc & Legacy
+                }
                 
-                // Show Assessment Progress (Bulk updates)
-                if (item.type === 'PROGRESS' && item.context === 'ASSESSMENT') return true;
+                // 3. Filter Progress
+                // Show if ASSESSMENT (or missing context). HIDE if part of Activity.
+                if (item.type === 'PROGRESS') {
+                    if (item.context === 'ACTIVITY') return false; // Hidden (Shown in Report)
+                    return true; // Show Manual Assessments & Legacy
+                }
                 
-                // HIDE: Child logs (Progress/Obs linked to Activity, Obs linked to Assessment)
-                return false;
+                return false; // Hide anything else
             }
 
             // Tab: OBS (Diary View) -> Show ALL observations regardless of context
@@ -87,7 +95,7 @@ const FeedView = {
             // Tab: INSIGHTS
             if (mode === 'Insight') return item.type === 'INSIGHT';
             
-            return true;
+            return false; // Fallback: hide if filter unknown
         });
     },
 
@@ -101,10 +109,11 @@ const FeedView = {
     updateFilterUI: () => {
         document.querySelectorAll('.filter-pill').forEach(btn => {
             // Check if this button matches current filter
-            // Note: Button text might vary, we assume onclick="FeedView.filter('All')" pattern
-            const filterType = btn.getAttribute('onclick').match(/'([^']+)'/)[1];
-            
-            if (filterType === FeedView.currentFilter) {
+            // Robust match from onclick attribute string
+            const match = btn.getAttribute('onclick').match(/'([^']+)'/);
+            const type = match ? match[1] : "";
+
+            if (type === FeedView.currentFilter) {
                 btn.className = "filter-pill active bg-slate-800 text-white px-4 py-1.5 rounded-full text-xs font-bold shadow-md transition whitespace-nowrap ring-1 ring-slate-800";
             } else {
                 btn.className = "filter-pill bg-white text-slate-500 border border-slate-200 px-4 py-1.5 rounded-full text-xs font-bold shadow-sm transition whitespace-nowrap hover:bg-slate-50";
