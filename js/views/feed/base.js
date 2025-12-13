@@ -65,37 +65,36 @@ const FeedView = {
         return data.filter(item => {
             // Tab: ALL (The curated story)
             if (mode === 'All') {
-                // 1. Always show major events
                 if (item.type === 'ACTIVITY' || item.type === 'REPORT' || item.type === 'INSIGHT') return true;
                 
-                // 2. Filter Observations
-                // Show if ADHOC (or missing context). HIDE if part of Activity or Assessment.
+                // Hide child logs
                 if (item.type === 'OBSERVATION') {
-                    if (item.context === 'ACTIVITY') return false;   // Hidden (Shown in Report)
-                    if (item.context === 'ASSESSMENT') return false; // Hidden (Shown in Progress Card)
-                    return true; // Show Adhoc & Legacy
+                    if (item.context === 'ACTIVITY') return false;   
+                    if (item.context === 'ASSESSMENT') return false; 
+                    return true; 
                 }
-                
-                // 3. Filter Progress
-                // Show if ASSESSMENT (or missing context). HIDE if part of Activity.
                 if (item.type === 'PROGRESS') {
-                    if (item.context === 'ACTIVITY') return false; // Hidden (Shown in Report)
-                    return true; // Show Manual Assessments & Legacy
+                    if (item.context === 'ACTIVITY') return false;
+                    return true;
                 }
-                
-                return false; // Hide anything else
+                return false;
             }
 
-            // Tab: OBS (Diary View) -> Show ALL observations regardless of context
+            // Tab: ACTIVITIES (New)
+            if (mode === 'Activities') {
+                return item.type === 'ACTIVITY' || item.type === 'REPORT';
+            }
+
+            // Tab: OBS
             if (mode === 'Obs') return item.type === 'OBSERVATION';
 
-            // Tab: GROWTH (Data View) -> Show ALL progress updates
+            // Tab: GROWTH
             if (mode === 'Growth') return item.type === 'PROGRESS';
 
             // Tab: INSIGHTS
             if (mode === 'Insight') return item.type === 'INSIGHT';
             
-            return false; // Fallback: hide if filter unknown
+            return false;
         });
     },
 
@@ -108,8 +107,6 @@ const FeedView = {
     // Visual updates for the pills
     updateFilterUI: () => {
         document.querySelectorAll('.filter-pill').forEach(btn => {
-            // Check if this button matches current filter
-            // Robust match from onclick attribute string
             const match = btn.getAttribute('onclick').match(/'([^']+)'/);
             const type = match ? match[1] : "";
 
