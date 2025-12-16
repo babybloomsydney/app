@@ -43,6 +43,10 @@ const API = {
     fetchProgress: async (childId) => {
         return await sendRequest({ action: "getChildProgress", childId });
     },
+    // NEW: Fetch Progress History
+    fetchHistory: async (childId) => { 
+        return await sendRequest({ action: "getChildHistory", childId: childId }); 
+    },
     // --- WRITERS ---
     generatePlan: async (childId, objectives) => {
         return await sendRequest({
