@@ -1,2 +1,0 @@
-# app
-Baby Bloom App
