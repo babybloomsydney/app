@@ -63,7 +63,7 @@ const API = {
             ratings,
             feedback: note,
             authorId: STATE.user.id,
-            refs: [activityId]  // Added to restore original linking (prevents null refs in GAS)
+            refs: [activityId]  // Restored to fix null refs/feed hiding
         });
     },
     logObservation: async (childId, domain, milestoneId, score, note) => {
