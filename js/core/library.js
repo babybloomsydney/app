@@ -1,0 +1,48 @@
+/**
+ * STATIC LIBRARY
+ * Pre-loaded milestones for performance.
+ */
+
+const LIBRARY_DATA = [
+    { id: "CL-03-A", domain: "CL", age: "0-3 months", desc: "Expresses needs through cries" },
+    { id: "CL-03-B", domain: "CL", age: "0-3 months", desc: "Makes throaty noises when content" },
+    { id: "CL-03-C", domain: "CL", age: "0-3 months", desc: "Soothed by familiar voices" },
+    { id: "CL-2432-D", domain: "CL", age: "24-32 months", desc: "Uses plurals/past tense" },
+    { id: "PSE-03-A", domain: "PSE", age: "0-3 months", desc: "Smiles at people" },
+    { id: "PSE-03-B", domain: "PSE", age: "0-3 months", desc: "Makes eye contact" },
+    { id: "PSE-03-C", domain: "PSE", age: "0-3 months", desc: "Startles at loud noises" },
+    { id: "PSE-1218-C", domain: "PSE", age: "12-18 months", desc: "Has tantrums when frustrated" },
+    { id: "PSE-2432-C", domain: "PSE", age: "24-32 months", desc: "Asserts independence (eg: 'I do it!')" },
+    { id: "PSE-2432-D", domain: "PSE", age: "24-32 months", desc: "Has imaginary friends/pretend play" },
+    { id: "PD-03-A", domain: "PD", age: "0-3 months", desc: "Lifts head and chest when on stomach" },
+    { id: "PD-03-B", domain: "PD", age: "0-3 months", desc: "Moves arms and legs actively" },
+    { id: "PD-03-C", domain: "PD", age: "0-3 months", desc: "Grasps finger when placed in palm" },
+    { id: "PD-2432-C", domain: "PD", age: "24-32 months", desc: "Climbs playground equipment" },
+    { id: "PD-2432-D", domain: "PD", age: "24-32 months", desc: "Pedals tricycle" },
+    { id: "LIT-03-A", domain: "LIT", age: "0-3 months", desc: "Listens to voices and sounds" },
+    { id: "LIT-03-B", domain: "LIT", age: "0-3 months", desc: "Recognizes familiar voices" },
+    { id: "LIT-03-C", domain: "LIT", age: "0-3 months", desc: "Enjoys simple songs/rhymes" },
+    { id: "LIT-2432-B", domain: "LIT", age: "24-32 months", desc: "Scribbles own name with help" },
+    { id: "LIT-2432-C", domain: "LIT", age: "24-32 months", desc: "Sits through longer stories" },
+    { id: "LIT-2432-D", domain: "LIT", age: "24-32 months", desc: "Understands print has meaning" },
+    { id: "NUM-03-A", domain: "NUM", age: "0-3 months", desc: "Notices patterns and routines" },
+    { id: "NUM-03-B", domain: "NUM", age: "0-3 months", desc: "Recognizes faces and objects" },
+    { id: "NUM-03-C", domain: "NUM", age: "0-3 months", desc: "Responds to number songs" },
+    { id: "NUM-612-D", domain: "NUM", age: "6-12 months", desc: "Explores nesting toys/shape sorters" },
+    { id: "NUM-2432-C", domain: "NUM", age: "24-32 months", desc: "Understands size/weight/length" },
+    { id: "NUM-2432-D", domain: "NUM", age: "24-32 months", desc: "Uses number words in context" },
+    { id: "UW-03-A", domain: "UW", age: "0-3 months", desc: "Alert to faces and voices" },
+    { id: "UW-03-B", domain: "UW", age: "0-3 months", desc: "Follows objects with eyes" },
+    { id: "UW-03-C", domain: "UW", age: "0-3 months", desc: "Reaches for dangling objects" },
+    { id: "UW-36-D", domain: "UW", age: "3-6 months", desc: "May imitate simple actions" },
+    { id: "UW-1824-A", domain: "UW", age: "18-24 months", desc: "Pretends to be someone else" },
+    { id: "UW-2432-C", domain: "UW", age: "24-32 months", desc: "Shows interest in nature" },
+    { id: "UW-2432-D", domain: "UW", age: "24-32 months", desc: "Follows three-step instructions" },
+    { id: "EAD-03-A", domain: "EAD", age: "0-3 months", desc: "Coos as early musical expression" },
+    { id: "EAD-03-B", domain: "EAD", age: "0-3 months", desc: "Moves arms/legs rhythmically" },
+    { id: "EAD-03-C", domain: "EAD", age: "0-3 months", desc: "Shows pleasure in sounds" },
+    { id: "EAD-1218-B", domain: "EAD", age: "12-18 months", desc: "Plays with playdough/clay" },
+    { id: "EAD-1824-D", domain: "EAD", age: "18-24 months", desc: "Sings songs, may create own" },
+    { id: "EAD-2432-C", domain: "EAD", age: "24-32 months", desc: "Sings songs with actions" },
+    { id: "EAD-2432-D", domain: "EAD", age: "24-32 months", desc: "Enjoys role-playing/dressing up" }
+];
