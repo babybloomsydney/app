@@ -1,125 +1,421 @@
+/**
+ * VIEW: PROGRESS DASHBOARD
+ * Handles Analytics Charts, History Slider, and Assessment Matrix.
+ * Works with EduBackend.gs v3.6 to fetch historical and matrix data.
+ */
+
 const ProgressView = {
-    render: async () => {
-        const res = await API.fetchStats(STATE.child.childId);
-        if(res.status==="success") {
-            const d = Utils.prepChart(res.data.stats);
-            const ctx = document.getElementById('radarChart');
-            if(window.myRadar) window.myRadar.destroy();
-            window.myRadar = new Chart(ctx,{
-                type:'radar',
-                data:{
-                    labels: d.labels,
-                    datasets:[{
-                        label: TXT.VIEWS.PROGRESS_DASHBOARD.HEADER_CHART,
-                        data: d.values,
-                        backgroundColor:'rgba(16,185,129,0.2)',
-                        borderColor:'#10b981'
-                    }]
-                },
-                options:{
-                    scales:{r:{beginAtZero:true,max:100,ticks:{display:false}}},
-                    plugins:{legend:{display:false}}
-                }
-            });
-        }
-
-        // NEW: Fetch and render historical line chart from DB_History (raw sums)
-        const historyRes = await API.fetchHistory(STATE.child.childId);
-        if (historyRes.status === "success" && historyRes.data.length > 0) {
-            // Calculate max per domain from library (for %)
-            const lib = STATE.library;
-            const domainMax = {};
-            Object.keys(CONFIG.DOMAINS).forEach(code => {
-                domainMax[code] = lib.filter(m => m.domain === code).length * 4; // Raw max = num_milestones * 4
-            });
-
-            // Convert raw sums to % for chart
-            const historyWithPercent = historyRes.data.map(entry => {
-                const percentEntry = {};
-                Object.keys(domainMax).forEach(code => {
-                    percentEntry[code] = domainMax[code] > 0 ? Math.round((entry[code] / domainMax[code]) * 100) : 0;
-                });
-                return { ...entry, ...percentEntry };
-            });
-
-            // Render line chart (like DEMO)
-            const ctxLine = document.getElementById('progressChart'); // Add this canvas in HTML below radar
-            if (window.myLine) window.myLine.destroy();
-            window.myLine = new Chart(ctxLine, {
-                type: 'line',
-                data: {
-                    labels: historyWithPercent.map(h => Utils.formatDate(h.date)),
-                    datasets: Object.keys(CONFIG.DOMAINS).map((code, i) => ({
-                        label: CONFIG.DOMAINS[code],
-                        data: historyWithPercent.map(h => h[code]),
-                        borderColor: `hsl(${i * 50}, 70%, 50%)`,
-                        tension: 0.3,
-                        fill: false
-                    }))
-                },
-                options: {
-                    responsive: true,
-                    plugins: { legend: { position: 'bottom' } },
-                    scales: { y: { beginAtZero: true, max: 100 } }
-                }
-            });
-        }
-
-        // NEW: Render DEMO-style editing matrix (uses STATE.library, saves via logBulkUpdate)
-        ProgressView.renderMatrix(res.data.stats);
+    filter: 'All',
+    historyData: [], // Stores snapshots from DB_History
+    currentMatrix: {}, // Stores current scores from DB_Progress
+    changes: {}, // Staged edits
+    
+    // Constants (Used locally for charting/UI definitions)
+    MAX_TOTAL_SCORE: 160,
+    PROGRAM_DURATION_MONTHS: 36,
+    DOMAIN_ICONS: { 
+        "CL": "\uf086", "PSE": "\uf004", "PD": "\uf183", 
+        "LIT": "\uf02d", "NUM": "\uf1ec", "UW": "\uf0ac", "EAD": "\uf1fc" 
     },
 
-    // NEW: DEMO matrix render (adapted, uses real library)
-    renderMatrix: (stats) => {
-        const c = document.getElementById('progressAccordion');
-        if(!c) return; c.innerHTML = "";
-       
-        const grouped = Utils.groupLibrary(STATE.library);
-       
-        Object.keys(grouped).forEach((dom, i) => {
-            const domLabel = CONFIG.DOMAINS[dom] || dom;
-            let html = `
-            <div class="border border-slate-200 rounded-xl bg-white overflow-hidden group mb-2">
-                <button onclick="ObsProgress.toggleAcc(this)" class="sticky-header w-full text-left p-4 flex justify-between items-center bg-white hover:bg-slate-50 transition border-b border-slate-50">
-                    <span class="font-bold text-sm text-slate-700">${domLabel}</span>
-                    <i class="fa-solid fa-chevron-down text-slate-300 transition-transform duration-300"></i>
+    render: async () => {
+        const container = document.getElementById('view-progress');
+        
+        // 1. Initial Skeleton (Injecting full dashboard structure)
+        if (!document.getElementById('domainSelect')) {
+            container.innerHTML = `
+            <div class="mb-6 select-wrapper max-w-xs">
+                <select id="domainSelect" onchange="ProgressView.setFilter(this.value)" class="stylized-select w-full bg-white border border-slate-200 text-slate-700 font-bold py-4 pl-6 pr-10 rounded-2xl shadow-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 text-lg transition-shadow">
+                    <option value="All">Development Overview</option>
+                </select>
+            </div>
+            
+            <div class="bg-white p-6 rounded-3xl shadow-sm border border-slate-100 mb-6 transition-all duration-300 relative overflow-hidden" id="analyticsCard">
+                <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-emerald-400 to-teal-500"></div>
+                <div class="flex justify-between items-center mb-2">
+                    <h3 class="font-bold text-slate-400 text-xs uppercase tracking-wider chart-header" id="chartTitle">Development Overview</h3>
+                    <div id="staticAgeIndicator" class="text-right transition-opacity duration-300"></div>
+                </div>
+                
+                <div id="chartViewWrapper">
+                    <div class="relative w-full h-96 flex items-center justify-center" id="chartContainer">
+                        <canvas id="chartCanvas"></canvas>
+                    </div>
+                </div>
+                
+                <div id="chartSliderContainer" class="mt-6 px-2">
+                    <div id="sliderControlsWrapper" class="relative flex items-center pr-[35px]">
+                        <input type="range" min="0" max="100" value="0" id="timeSlider" class="flex-grow" oninput="ProgressView.updateSlider(this.value)">
+                        <button id="resetSliderBtn" onclick="ProgressView.resetSlider()" class="absolute top-[23px] right-0 z-30 w-6 h-6 bg-transparent text-slate-400 border-none p-0 flex items-center justify-center cursor-pointer transition reset-hidden"><i class="fa-solid fa-rotate-left text-base"></i></button>
+                    </div>
+                    <div class="flex justify-between mt-2 text-[10px] font-bold uppercase tracking-wide"><span class="text-slate-500">Birth</span><span class="text-slate-500">Projected</span></div>
+                </div>
+            </div>
+            
+            <div id="matrixContainer" class="space-y-4"></div>
+            
+            <div id="saveFloat" class="fixed bottom-24 left-0 w-full flex justify-center z-50 transition-transform duration-300 translate-y-24 opacity-0 pointer-events-none">
+                <button onclick="ProgressView.save()" class="bg-slate-800 text-white px-6 py-3 rounded-full font-bold shadow-xl flex items-center gap-3 hover:scale-105 transition pointer-events-auto">
+                    <span>Update Progress</span>
+                    <div class="bg-white text-slate-900 w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold" id="changeCount">0</div>
                 </button>
-                <div class="accordion-content bg-slate-50 px-4">
-                    <div class="py-2 space-y-4">`;
-            Object.keys(grouped[dom]).forEach(age => {
-                html += `<div><p class="text-[10px] font-bold text-slate-400 uppercase mb-2 tracking-wide mt-2">${age}</p><div class="space-y-2">`;
-                grouped[dom][age].forEach(m => {
-                    const currentScore = stats[m.id] || 0;
-                    html += `<div class="py-2 border-b border-slate-100 last:border-0">
-                        <div class="flex justify-between items-start">
-                            <div class="flex items-start gap-2 pr-2 overflow-hidden">
-                                <p class="text-xs font-bold text-slate-700 leading-snug truncate">${m.desc}</p>
-                            </div>
-                            <div class="flex gap-1 shrink-0">`;
-                    for (let s = 1; s <= 4; s++) {
-                        html += `<button onclick="ProgressView.rate('${m.id}', ${s})" class="text-[10px] px-2 py-1 rounded font-bold ${currentScore === s ? 'text-emerald-600 bg-emerald-50' : 'text-slate-600 bg-slate-100'}">${TXT.CORE.SCORES[s]}</button>`;
-                    }
-                    html += `</div></div></div>`;
-                });
-                html += `</div></div>`;
-            });
-            html += `</div></div>`;
-            c.innerHTML += html;
+            </div>`;
+            
+            // Populate Dropdown
+            ProgressView.renderDropdown();
+        }
+
+        // 2. Fetch Real Data
+        const [histRes, matrixRes] = await Promise.all([
+            API.fetchHistory(STATE.child.childId),
+            API.fetchProgress(STATE.child.childId)
+        ]);
+
+        if (histRes.status === "success") ProgressView.historyData = histRes.data;
+        // Inject "Birth" zero-state if missing
+        if (ProgressView.historyData.length === 0 || ProgressView.historyData[0].date !== "Birth") {
+             ProgressView.historyData.unshift({ date: "Birth", CL: 0, PSE: 0, PD: 0, LIT: 0, NUM: 0, UW: 0, EAD: 0 });
+        }
+
+        if (matrixRes.status === "success") {
+            ProgressView.currentMatrix = {};
+            matrixRes.data.forEach(m => ProgressView.currentMatrix[m.id] = m.score);
+        }
+
+        // 3. Render
+        ProgressView.setFilter('All');
+        ProgressView.resetSlider();
+    },
+
+    renderDropdown: () => {
+        const sel = document.getElementById('domainSelect');
+        sel.innerHTML = '<option value="All">Development Overview</option>';
+        Object.keys(CONFIG.DOMAINS).forEach(code => {
+            sel.innerHTML += `<option value="${code}">${CONFIG.DOMAINS[code]}</option>`;
         });
     },
 
-    // NEW: DEMO rate function (tracks changes)
-    rate: (id, score) => {
-        STATE.progressChanges = STATE.progressChanges || {};
-        STATE.progressChanges[id] = score;
-        ProgressView.renderMatrix(); // Re-render to show selected
+    setFilter: (key) => {
+        ProgressView.filter = key;
+        
+        const titleEl = document.getElementById('chartTitle');
+        if (key === 'All') {
+            titleEl.innerHTML = `Development Overview`;
+        } else {
+            const iconCode = ProgressView.DOMAIN_ICONS[key];
+            const domainName = CONFIG.DOMAINS[key];
+            titleEl.innerHTML = `<span class="domain-icon" style="color: #10b981;">${iconCode}</span> <span>${domainName}</span>`;
+        }
+        
+        document.getElementById('domainSelect').value = key;
+        
+        ProgressView.renderChart();
+        ProgressView.renderMatrix();
     },
 
-    // NEW: DEMO save function (uses logBulkUpdate)
+    resetSlider: () => {
+        const dob = new Date(STATE.child.dob); 
+        const today = new Date();
+        let months = (today.getFullYear() - dob.getFullYear()) * 12 + (today.getMonth() - dob.getMonth());
+        if(today.getDate() < dob.getDate()) months--;
+        
+        const percent = Math.min(100, Math.max(0, (months / ProgressView.PROGRAM_DURATION_MONTHS) * 100));
+        
+        const slider = document.getElementById('timeSlider');
+        if(slider) {
+            slider.value = percent;
+            ProgressView.updateSlider(percent);
+        }
+    },
+
+    getAgeInMonthsDisplay: (months) => {
+        const m = Math.round(months);
+        const y = Math.floor(m / 12);
+        const rm = m % 12;
+        if (m === 0) return "Birth";
+        if (y > 0) return rm === 0 ? `${y} yrs` : `${y}y ${rm}m`;
+        return `${m} mths`; 
+    },
+    
+    // --- CHART ENGINE ---
+    renderChart: (rotationAngle = 0) => {
+        const ctx = document.getElementById('chartCanvas');
+        if (!ctx) return;
+        
+        if (window.myChart) window.myChart.destroy();
+        
+        const isAll = ProgressView.filter === 'All';
+        const sliderContainer = document.getElementById('chartSliderContainer');
+        const staticAgeIndicator = document.getElementById('staticAgeIndicator');
+        const resetBtn = document.getElementById('resetSliderBtn');
+        const containerDiv = document.getElementById('chartContainer');
+
+        // Toggle Views
+        if(isAll) { 
+            sliderContainer.classList.remove('hidden'); 
+            staticAgeIndicator.classList.remove('hidden');
+            containerDiv.style.height = '24rem';
+            resetBtn.classList.remove('hidden', 'reset-hidden');
+            
+        } else { 
+            sliderContainer.classList.add('hidden'); 
+            staticAgeIndicator.classList.add('hidden');
+            containerDiv.style.height = '12rem'; 
+            resetBtn.classList.add('reset-hidden');
+        }
+
+        if (isAll) {
+            // RADAR (Using History Data)
+            const lastEntry = ProgressView.historyData[ProgressView.historyData.length - 1];
+            const data = Object.keys(CONFIG.DOMAINS).map(d => (Number(lastEntry[d]) || 0) + 10);
+            const labels = Object.keys(CONFIG.DOMAINS).map(k => ProgressView.DOMAIN_ICONS[k]);
+
+            window.myChart = new Chart(ctx, {
+                type: 'radar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        data: data,
+                        backgroundColor: 'rgba(16, 185, 129, 0.3)', borderColor: '#10b981',
+                        pointRadius: 0, borderWidth: 3, tension: 0.2, fill: true,
+                        pointBackgroundColor: '#10b981', pointBorderColor: 'white'
+                    }]
+                },
+                options: {
+                    scales: {
+                        r: { 
+                            beginAtZero: true, min: 10, max: 180, ticks: { display: false }, 
+                            grid: { display: false }, angleLines: { display: false },
+                            pointLabels: { font: { size: 24, family: "'Font Awesome 6 Free'", weight: 900 }, color: '#64748b' }
+                        }
+                    },
+                    plugins: { legend: { display: false } },
+                    maintainAspectRatio: false, animation: { duration: 300 },
+                    elements: { line: { tension: 0.2 } }, 
+                    layout: { startAngle: rotationAngle }
+                }
+            });
+        } else {
+            // LINE CHART (Domain Specific)
+            const domainCode = ProgressView.filter;
+            const history = ProgressView.historyData.filter(h => h.date !== 'Birth');
+            
+            const scores = history.map(h => Number(h[domainCode]) || 0);
+            const dates = history.map(h => h.date.split(' ')[0]); 
+
+            const lastScore = scores[scores.length - 1] || 0;
+            const projected = [...scores, lastScore + 5, lastScore + 10].map(s => Math.min(s, ProgressView.MAX_TOTAL_SCORE));
+            const actualData = [...scores, null, null];
+            const allLabels = [...dates, "Next", "Future"];
+
+            window.myChart = new Chart(ctx, { 
+                type: 'line',
+                data: {
+                    labels: allLabels,
+                    datasets: [
+                        {
+                            label: "Actual",
+                            data: actualData, borderColor: '#10b981', backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                            fill: 'origin', tension: 0.4, pointRadius: 3, pointBackgroundColor: '#10b981', borderWidth: 3
+                        },
+                        {
+                            label: "Projection",
+                            data: projected, borderColor: '#cbd5e1', borderDash: [5, 5],
+                            backgroundColor: 'transparent', fill: false, tension: 0.4, pointRadius: 0, borderWidth: 2
+                        }
+                    ]
+                },
+                options: {
+                    scales: {
+                        x: { display: true, grid: { display: false }, ticks: { maxRotation: 0, autoSkip: true } },
+                        y: { beginAtZero: true, max: ProgressView.MAX_TOTAL_SCORE + 10, grid: { color: '#e2e8f0' }, title: { display: false } }
+                    },
+                    plugins: { legend: { display: false } },
+                    maintainAspectRatio: false,
+                    layout: { padding: { top: 10, bottom: 0, left: 0, right: 10 } }
+                }
+            });
+        }
+        
+        if(isAll) {
+             const slider = document.getElementById('timeSlider');
+             if(slider) ProgressView.updateSlider(slider.value);
+        }
+    },
+
+    updateSlider: (val) => {
+        const percent = parseInt(val);
+        if (!window.myChart || ProgressView.filter !== 'All') return;
+
+        const keys = Object.keys(CONFIG.DOMAINS);
+        const history = ProgressView.historyData;
+        const maxIndex = history.length - 1; 
+        
+        const targetAgeMonths = (percent / 100) * ProgressView.PROGRAM_DURATION_MONTHS;
+        
+        const dob = new Date(STATE.child.dob);
+        const today = new Date();
+        let currentAge = (today.getFullYear() - dob.getFullYear()) * 12 + (today.getMonth() - dob.getMonth());
+        
+        const isAtNowMarker = Math.abs(targetAgeMonths - currentAge) < 0.1;
+        const isAtBirth = targetAgeMonths < 0.1;
+        
+        const staticInd = document.getElementById('staticAgeIndicator');
+        const resetBtn = document.getElementById('resetSliderBtn');
+        const sliderWrapper = document.getElementById('sliderControlsWrapper');
+        
+        // Header Logic
+        if (isAtNowMarker) {
+            staticInd.innerHTML = `<p class="text-[10px] font-bold text-emerald-600 uppercase tracking-wide">Today</p><p class="text-xs font-bold text-emerald-600 leading-none">${ProgressView.getAgeInMonthsDisplay(currentAge)}</p>`;
+            resetBtn.classList.add('reset-hidden');
+        } else {
+            staticInd.innerHTML = `<p class="text-xs font-bold text-slate-400 leading-none">${ProgressView.getAgeInMonthsDisplay(targetAgeMonths)}</p>`;
+            resetBtn.classList.remove('reset-hidden');
+            
+            // Calc Reset Button Pos
+            const sliderRect = document.getElementById('timeSlider').getBoundingClientRect();
+            const sliderContainerRect = sliderWrapper.getBoundingClientRect();
+            const thumbOffset = 12; // Half thumb width (24/2)
+            
+            const thumbLeft = (percent / 100) * sliderRect.width + sliderRect.left - sliderContainerRect.left;
+            
+            const nowPercent = (currentAge / ProgressView.PROGRAM_DURATION_MONTHS) * 100;
+
+            if (percent > nowPercent) {
+                resetBtn.style.left = `${thumbLeft - 30}px`;
+            } else {
+                resetBtn.style.left = `${thumbLeft + 20}px`;
+            }
+        }
+        
+        // Interpolation
+        let newData = [];
+        let shapeAlpha = 1.0;
+        
+        if (targetAgeMonths <= currentAge) {
+             // History Interpolation
+             const ageRatio = targetAgeMonths / currentAge;
+             const fracIndex = ageRatio * maxIndex;
+             const idx1 = Math.floor(fracIndex);
+             const idx2 = Math.min(maxIndex, Math.ceil(fracIndex));
+             const blend = fracIndex - idx1;
+             
+             const e1 = history[idx1];
+             const e2 = history[idx2];
+             
+             newData = keys.map(k => {
+                 const s1 = (Number(e1[k])||0) + 10;
+                 const s2 = (Number(e2[k])||0) + 10;
+                 return s1 + (s2 - s1) * blend;
+             });
+             
+             window.myChart.data.datasets[0].borderColor = '#10b981';
+             
+             if (isAtBirth) { 
+                 window.myChart.data.datasets[0].pointRadius = 8; 
+                 window.myChart.data.datasets[0].borderWidth = 0;
+                 shapeAlpha = 0;
+             } else {
+                 window.myChart.data.datasets[0].pointRadius = 0; 
+                 window.myChart.data.datasets[0].borderWidth = 3;
+             }
+             window.myChart.data.datasets[0].backgroundColor = `rgba(16, 185, 129, ${shapeAlpha * 0.3})`;
+             
+        } else {
+             // Projection
+             const timeRemaining = ProgressView.PROGRAM_DURATION_MONTHS - currentAge;
+             const timeElapsed = targetAgeMonths - currentAge;
+             const ratio = timeElapsed / timeRemaining;
+             
+             const currentEntry = history[maxIndex];
+             
+             newData = keys.map(k => {
+                 const base = Number(currentEntry[k]) || 0;
+                 const projected = Math.min(ProgressView.MAX_TOTAL_SCORE, base * 1.5);
+                 
+                 const start = base + 10;
+                 const end = projected + 10;
+                 return start + (end - start) * ratio;
+             });
+             
+             window.myChart.data.datasets[0].borderColor = '#cbd5e1';
+             window.myChart.data.datasets[0].backgroundColor = 'rgba(203, 213, 225, 0.3)';
+             window.myChart.data.datasets[0].pointRadius = 0;
+             window.myChart.data.datasets[0].borderWidth = 3;
+        }
+        
+        window.myChart.data.datasets[0].data = newData;
+        window.myChart.update('none');
+    },
+
+    renderMatrix: () => {
+        const c = document.getElementById('matrixContainer');
+        c.innerHTML = "";
+
+        if (ProgressView.filter === 'All') {
+            c.innerHTML = `<div class="text-center text-slate-400 py-12 text-sm bg-white rounded-3xl border border-slate-100 p-8 shadow-sm flex flex-col items-center"><i class="fa-solid fa-layer-group text-3xl mb-3 text-slate-200"></i><p>Select a specific Domain above<br>to view and update milestones.</p></div>`;
+            return;
+        }
+
+        const items = STATE.library.filter(m => {
+            const prefix = m.id.split('-')[0];
+            return prefix === ProgressView.filter;
+        });
+        
+        const grouped = Utils.groupLibrary(items);
+
+        Object.keys(grouped).forEach(age => {
+             let rows = "";
+             grouped[age].forEach(m => {
+                 const score = ProgressView.changes[m.id] !== undefined ? ProgressView.changes[m.id] : (ProgressView.currentMatrix[m.id] || 0);
+                 const label = TXT.CORE.SCORES[score];
+                 const badgeClass = `level-${score}`;
+                 
+                 rows += `<div class="bg-white border border-slate-100 rounded-xl overflow-hidden mb-2 transition-all shadow-sm group">
+                    <div onclick="ProgressView.toggleRow('${m.id}')" class="p-4 flex justify-between items-center gap-3 cursor-pointer hover:bg-slate-50 transition">
+                        <div class="flex-1"><p class="text-sm font-bold text-slate-700 leading-snug">${m.desc}</p></div>
+                        <div class="shrink-0"><span class="text-[10px] font-bold px-3 py-1.5 rounded-full border ${badgeClass} uppercase tracking-wider">${label}</span></div>
+                    </div>
+                    <div id="editor-${m.id}" class="hidden bg-slate-50 p-3 border-t border-slate-100 grid grid-cols-5 gap-1">
+                         ${[0,1,2,3,4].map(s => `<button onclick="ProgressView.rate('${m.id}', ${s})" class="p-2 rounded-lg border text-[10px] font-bold transition bg-white">${s===0?'-':TXT.CORE.SCORES[s].substring(0,3)}</button>`).join('')}
+                    </div>
+                 </div>`;
+             });
+             c.innerHTML += `<div class="mb-6"><h4 class="text-xs font-bold text-slate-400 uppercase mb-3 ml-1 sticky top-14 z-10 bg-slate-50/95 backdrop-blur py-2 w-full">${age}</h4>${rows}</div>`;
+        });
+    },
+
+    toggleRow: (id) => document.getElementById('editor-'+id).classList.toggle('hidden'),
+    
+    rate: (id, score) => {
+        ProgressView.changes[id] = score;
+        ProgressView.renderMatrix();
+        const count = Object.keys(ProgressView.changes).length;
+        const btn = document.getElementById('saveFloat');
+        if(count > 0) {
+             btn.classList.remove('translate-y-24', 'opacity-0', 'pointer-events-none');
+             document.getElementById('changeCount').innerText = count;
+        } else {
+             btn.classList.add('translate-y-24', 'opacity-0', 'pointer-events-none');
+        }
+    },
+
     save: async () => {
-        const updates = Object.keys(STATE.progressChanges).map(id => ({id, score: STATE.progressChanges[id]}));
-        await API.logBulkUpdate(STATE.child.childId, updates, "Dashboard update");
-        STATE.progressChanges = {};
-        ProgressView.render(); // Refresh chart with new snapshot
+        const updates = Object.keys(ProgressView.changes).map(id => ({ id, score: ProgressView.changes[id] }));
+        if(updates.length === 0) return;
+
+        const btn = document.querySelector('#saveFloat button');
+        const old = btn.innerHTML;
+        btn.innerHTML = `<span class="flex items-center gap-2"><i class="fa-solid fa-check"></i> Saved!</span>`;
+        btn.classList.add('bg-emerald-600');
+        
+        await API.logBulkUpdate(STATE.child.childId, updates, ""); 
+
+        setTimeout(() => {
+             ProgressView.changes = {};
+             ProgressView.render();
+             btn.innerHTML = old;
+             btn.classList.remove('bg-emerald-600');
+        }, 1000);
     }
 };
