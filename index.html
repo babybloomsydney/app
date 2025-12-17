@@ -48,38 +48,6 @@
         </div>
         <!-- PROGRESS VIEW -->
         <div id="view-progress" class="view-section hidden space-y-6">
-            <div class="bg-white p-6 rounded-3xl shadow-sm border border-slate-100">
-                <div class="flex justify-between items-center mb-4">
-                    <h3 class="font-bold text-slate-700">Mastery Balance</h3>
-                    <span class="text-xs bg-emerald-100 text-emerald-700 px-2 py-1 rounded-full font-bold">Live</span>
-                </div>
-                <div class="aspect-square relative"><canvas id="radarChart"></canvas></div>
-            </div>
-            <!-- NEW: Line Chart for Historical Progress -->
-            <div class="bg-white p-6 rounded-3xl shadow-sm border border-slate-100">
-                <div class="flex justify-between items-center mb-4">
-                    <h3 class="font-bold text-slate-700">Progress Over Time</h3>
-                    <span class="text-xs bg-emerald-100 text-emerald-700 px-2 py-1 rounded-full font-bold">Live</span>
-                </div>
-                <div class="aspect-square relative"><canvas id="progressChart"></canvas></div>
-            </div>
-            <!-- NEW: DEMO Matrix (Domain Dropdown and Levels) -->
-            <div class="bg-white p-6 rounded-3xl shadow-sm border border-slate-100">
-                <div class="flex justify-between items-center mb-4">
-                    <h3 class="font-bold text-slate-700">Progress Matrix</h3>
-                    <span class="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded-full font-bold">Edit</span>
-                </div>
-                <!-- DEMO Dropdown -->
-                <div class="select-wrapper mb-4">
-                    <select id="domainSelect" class="stylized-select w-full bg-slate-50 border border-slate-200 p-3 rounded-xl text-sm font-bold text-slate-700 focus:border-blue-500">
-                        <option value="">All Domains</option>
-                    </select>
-                </div>
-                <!-- DEMO Matrix Container -->
-                <div id="progressMatrix" class="space-y-4"></div>
-            </div>
-            <div class="grid grid-cols-2 gap-3" id="statsGrid"></div>
-        </div>
     </div>
     <!-- 3. FAB (Moved up to clear Bottom Nav) -->
     <div class="fixed bottom-20 right-6 z-50 flex flex-col items-end gap-3 pointer-events-none">
