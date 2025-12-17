@@ -75,6 +75,7 @@ const FeedView = {
                     return true; 
                 }
                 
+                // Keep 'All' clean: Hide PROGRESS logs if they are just side-effects of Activities
                 if (item.type === 'PROGRESS') {
                     if (item.context === 'ACTIVITY') return false;
                     return true;
