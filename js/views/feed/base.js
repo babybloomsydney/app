@@ -64,11 +64,10 @@ const FeedView = {
         
         return data.filter(item => {
 
-            // Tab: ALL (The curated story)
+            // --- ALL TAB (unchanged) ---
             if (mode === 'All') {
                 if (item.type === 'ACTIVITY' || item.type === 'REPORT' || item.type === 'INSIGHT') return true;
                 
-                // Hide child logs
                 if (item.type === 'OBSERVATION') {
                     if (item.context === 'ACTIVITY') return false;   
                     if (item.context === 'ASSESSMENT') return false; 
@@ -83,20 +82,21 @@ const FeedView = {
                 return false;
             }
 
-            // Tab: ACTIVITIES (New)
+            // --- ACTIVITIES TAB ---
             if (mode === 'Activities') {
                 return item.type === 'ACTIVITY' || item.type === 'REPORT';
             }
 
-            // Tab: OBS
+            // --- OBS TAB ---
             if (mode === 'Obs') return item.type === 'OBSERVATION';
 
-            // Tab: GROWTH (Updated: show all PROGRESS items regardless of context)
-            if (mode === 'Growth') {
+            // --- GROWTH TAB (Updated: show all PROGRESS, ignore context, case-insensitive) ---
+            if (mode?.toLowerCase() === 'growth') {
+                console.log("Including PROGRESS item in Growth tab:", item);
                 return item.type === 'PROGRESS';
             }
 
-            // Tab: INSIGHTS
+            // --- INSIGHTS TAB ---
             if (mode === 'Insight') return item.type === 'INSIGHT';
             
             return false;
