@@ -63,6 +63,7 @@ const FeedView = {
         const mode = FeedView.currentFilter;
         
         return data.filter(item => {
+
             // Tab: ALL (The curated story)
             if (mode === 'All') {
                 if (item.type === 'ACTIVITY' || item.type === 'REPORT' || item.type === 'INSIGHT') return true;
@@ -73,10 +74,12 @@ const FeedView = {
                     if (item.context === 'ASSESSMENT') return false; 
                     return true; 
                 }
+                
                 if (item.type === 'PROGRESS') {
                     if (item.context === 'ACTIVITY') return false;
                     return true;
                 }
+
                 return false;
             }
 
@@ -88,8 +91,10 @@ const FeedView = {
             // Tab: OBS
             if (mode === 'Obs') return item.type === 'OBSERVATION';
 
-            // Tab: GROWTH
-            if (mode === 'Growth') return item.type === 'PROGRESS';
+            // Tab: GROWTH (Updated: show all PROGRESS items regardless of context)
+            if (mode === 'Growth') {
+                return item.type === 'PROGRESS';
+            }
 
             // Tab: INSIGHTS
             if (mode === 'Insight') return item.type === 'INSIGHT';
