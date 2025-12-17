@@ -92,7 +92,9 @@ const FeedView = {
             if (mode === 'Obs') return item.type === 'OBSERVATION';
 
             // Tab: GROWTH (Updated: show all PROGRESS items regardless of context)
-            if (mode === 'Growth') return item.type === 'PROGRESS';
+            if (mode === 'Growth') {
+                return item.type === 'PROGRESS';
+            }
 
             // Tab: INSIGHTS
             if (mode === 'Insight') return item.type === 'INSIGHT';
