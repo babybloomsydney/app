@@ -1,5 +1,4 @@
 const ProgressView = {
-
     render: async () => {
         const res = await API.fetchStats(STATE.child.childId);
         if(res.status==="success") {
@@ -15,3 +14,13 @@ const ProgressView = {
                         data: d.values,
                         backgroundColor:'rgba(16,185,129,0.2)',
                         borderColor:'#10b981'
+                    }]
+                },
+                options:{
+                    scales:{r:{beginAtZero:true,max:100,ticks:{display:false}}},
+                    plugins:{legend:{display:false}}
+                }
+            });
+        }
+    }
+};
