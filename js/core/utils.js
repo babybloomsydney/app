@@ -44,10 +44,9 @@ const Utils = {
     // Find a milestone description by ID
     getMilestoneDesc: (id) => {
         const m = STATE.library.find(x => x.id === id);
-        return m ? m.desc : (id || TXT.CORE.UNKNOWN_SKILL);
+        return m ? m.desc : "Unknown milestone";
     },
 
-    // FIXED: Robust Domain Name Lookup
     // Prevents "undefined" by safely checking prefix, config, and library object
     getMilestoneDomain: (id) => {
         if (!id) return TXT.CORE.UNKNOWN_DOMAIN; // "General"
@@ -86,5 +85,10 @@ const Utils = {
         const labels = Object.keys(CONFIG.DOMAINS).map(k => k); // Short codes for chart
         const data = Object.keys(CONFIG.DOMAINS).map(k => stats[k]?.percent || 0);
         return { labels, data };
+    },
+
+    // NEW: Added for radar chart fix (matches your progress.js call)
+    prepChart: (stats) => {
+        return Utils.prepChartData(stats); // Reuses your original logic
     }
 };
