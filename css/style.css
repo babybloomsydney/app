@@ -1,0 +1,104 @@
+/* BABY BLOOM STYLESHEET */
+
+/* --- BASE LAYOUT --- */
+body {
+    background-color: #f8fafc; /* Slate-50 */
+    padding-bottom: 120px; /* Increased space for Bottom Nav + FAB */
+    -webkit-tap-highlight-color: transparent;
+}
+
+/* --- UTILITIES --- */
+
+/* Hide Scrollbar for Filter Bar (Chrome, Safari and Opera) */
+.no-scrollbar::-webkit-scrollbar {
+    display: none;
+}
+/* Hide Scrollbar for Filter Bar (IE, Edge and Firefox) */
+.no-scrollbar {
+    -ms-overflow-style: none;  /* IE and Edge */
+    scrollbar-width: none;  /* Firefox */
+}
+
+/* Safe Area Padding for iPhone Home Bar */
+.pb-safe {
+    padding-bottom: env(safe-area-inset-bottom);
+}
+
+/* --- ANIMATIONS --- */
+.animate-fade-in { animation: fadeIn 0.5s ease-out; }
+@keyframes fadeIn { 
+    from { opacity: 0; transform: translateY(10px); } 
+    to { opacity: 1; transform: translateY(0); } 
+}
+
+.animate-slide-up { animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1); }
+@keyframes slideUp { 
+    from { transform: translateY(100%); } 
+    to { transform: translateY(0); } 
+}
+
+/* Success Pulse */
+@keyframes pulseGreen {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.02); }
+    100% { transform: scale(1); }
+}
+.btn-success {
+    background-color: #10b981 !important; /* Emerald-500 */
+    color: white !important;
+    pointer-events: none;
+    animation: pulseGreen 0.3s ease-in-out;
+}
+
+/* --- COMPONENTS --- */
+
+/* Accordion Logic */
+.accordion-content {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.3s ease-in-out;
+}
+.accordion-open {
+    max-height: 3000px; /* Large enough for content */
+}
+.rotate-180 { transform: rotate(180deg); }
+.transition-transform { transition: transform 0.3s; }
+
+/* Sticky Headers */
+.sticky-header {
+    position: sticky;
+    top: 0;
+    z-index: 20;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+}
+
+/* Tabs (Legacy Top Tabs & New Bottom Nav Active State) */
+.tab-active { 
+    color: #047857; /* Emerald-700 */
+    font-weight: 800;
+}
+.tab-inactive { 
+    color: #94a3b8; /* Slate-400 */
+    font-weight: 500;
+}
+
+/* FAB */
+.fab-menu { transition: transform 0.2s; }
+.fab-active { transform: rotate(45deg); background-color: #ef4444 !important; }
+
+/* Rating Buttons */
+.rate-btn { transition: all 0.2s; }
+.rate-btn.selected, .log-rate-btn.selected {
+    background-color: #10b981;
+    color: white;
+    border-color: #10b981;
+}
+
+/* Custom Scrollbar */
+.custom-scrollbar::-webkit-scrollbar { width: 4px; }
+.custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+.custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+
+/* Drawers & Z-Index */
+#reviewModal, #logModal { z-index: 70; }
+.fa-solid { font-family: "Font Awesome 6 Free"; font-weight: 900; }
