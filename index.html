@@ -4,21 +4,16 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Baby Bloom</title>
-
+   
     <!-- LIBRARIES -->
     <script src="https://cdn.tailwindcss.com"></script>
-
-
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
-
-
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
+   
     <!-- STYLES -->
     <link rel="stylesheet" href="css/style.css">
 </head>
 <body class="font-sans text-slate-800 bg-slate-50">
-
     <!-- 1. TOP NAV (Header Only) -->
     <div class="fixed top-0 w-full z-40 bg-white/95 backdrop-blur-sm border-b border-slate-100">
         <div class="max-w-md mx-auto px-4 py-3 flex justify-between items-center">
@@ -33,13 +28,12 @@
             </div>
         </div>
     </div>
-
     <!-- 2. MAIN CONTAINER -->
     <div class="max-w-md mx-auto mt-24 px-4 pb-24">
-
+       
         <!-- FEED VIEW -->
         <div id="view-feed" class="view-section space-y-4 min-h-[50vh]">
-
+           
             <!-- FEED FILTERS (Sticky Top) -->
             <!-- Updated: Added Activities tab, centered content -->
             <div class="sticky top-20 z-30 bg-slate-50 pt-2 pb-2 -mx-4 px-4 flex gap-2 overflow-x-auto no-scrollbar justify-start sm:justify-center" id="feedFilterBar">
@@ -50,10 +44,8 @@
                 <button onclick="FeedView.filter('Growth')" class="filter-pill bg-white text-slate-500 border border-slate-200 px-4 py-1.5 rounded-full text-xs font-bold shadow-sm transition whitespace-nowrap">Growth</button>
                 <button onclick="FeedView.filter('Insight')" class="filter-pill bg-white text-slate-500 border border-slate-200 px-4 py-1.5 rounded-full text-xs font-bold shadow-sm transition whitespace-nowrap">Insights</button>
             </div>
-
             <div id="feedContainer"></div>
         </div>
-
         <!-- PROGRESS VIEW -->
         <div id="view-progress" class="view-section hidden space-y-6">
             <div class="bg-white p-6 rounded-3xl shadow-sm border border-slate-100">
@@ -63,10 +55,32 @@
                 </div>
                 <div class="aspect-square relative"><canvas id="radarChart"></canvas></div>
             </div>
+            <!-- NEW: Line Chart for Historical Progress -->
+            <div class="bg-white p-6 rounded-3xl shadow-sm border border-slate-100">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="font-bold text-slate-700">Progress Over Time</h3>
+                    <span class="text-xs bg-emerald-100 text-emerald-700 px-2 py-1 rounded-full font-bold">Live</span>
+                </div>
+                <div class="aspect-square relative"><canvas id="progressChart"></canvas></div>
+            </div>
+            <!-- NEW: DEMO Matrix (Domain Dropdown and Levels) -->
+            <div class="bg-white p-6 rounded-3xl shadow-sm border border-slate-100">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="font-bold text-slate-700">Progress Matrix</h3>
+                    <span class="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded-full font-bold">Edit</span>
+                </div>
+                <!-- DEMO Dropdown -->
+                <div class="select-wrapper mb-4">
+                    <select id="domainSelect" class="stylized-select w-full bg-slate-50 border border-slate-200 p-3 rounded-xl text-sm font-bold text-slate-700 focus:border-blue-500">
+                        <option value="">All Domains</option>
+                    </select>
+                </div>
+                <!-- DEMO Matrix Container -->
+                <div id="progressMatrix" class="space-y-4"></div>
+            </div>
             <div class="grid grid-cols-2 gap-3" id="statsGrid"></div>
         </div>
     </div>
-
     <!-- 3. FAB (Moved up to clear Bottom Nav) -->
     <div class="fixed bottom-20 right-6 z-50 flex flex-col items-end gap-3 pointer-events-none">
         <div id="fabMenu" class="hidden flex flex-col items-end gap-3 mb-2 pointer-events-auto">
@@ -77,7 +91,13 @@
             <i id="fabIcon" class="fa-solid fa-plus"></i>
         </button>
     </div>
-
+    <!-- NEW: Floating Save Button for Progress Matrix (From DEMO) -->
+    <div id="saveFloat" class="fixed bottom-24 right-6 z-50 translate-y-24 opacity-0 pointer-events-none transition-all duration-300">
+        <button onclick="ProgressView.save()" class="flex items-center gap-3 bg-emerald-600 text-white py-3 px-6 rounded-full shadow-xl shadow-emerald-200">
+            <span class="font-bold text-sm">Save Changes</span>
+            <span id="changeCount" class="bg-white text-emerald-600 px-2 py-1 rounded-full rounded text-xs font-bold">0</span>
+        </button>
+    </div>
     <!-- 4. BOTTOM NAV (New) -->
     <div class="fixed bottom-0 w-full z-40 bg-white border-t border-slate-100 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.02)] pb-safe">
         <div class="max-w-md mx-auto grid grid-cols-2 h-16">
@@ -87,13 +107,11 @@
             </button>
             <button onclick="Router.navigate('progress')" id="nav-progress" class="nav-item flex flex-col items-center justify-center text-slate-300 hover:text-slate-500 transition h-full w-full">
                 <i class="fa-solid fa-chart-pie text-2xl"></i>
-
             </button>
         </div>
     </div>
-
     <!-- 5. MODALS -->
-
+   
     <!-- Login -->
     <div id="loginModal" class="modal fixed inset-0 z-[60] bg-slate-900/90 backdrop-blur-md flex items-center justify-center p-6 hidden">
         <div class="bg-white w-full max-w-sm rounded-3xl p-8 shadow-2xl animate-fade-in">
@@ -108,7 +126,6 @@
             </div>
         </div>
     </div>
-
     <!-- Plan Modal -->
     <div id="planModal" class="modal fixed inset-0 z-[60] bg-white hidden flex flex-col animate-slide-up">
         <div class="p-4 border-b border-slate-100 flex justify-between items-center bg-white shadow-sm z-10">
@@ -131,7 +148,6 @@
             <button onclick="PlanWizard.submit()" id="submitPlanBtn" class="w-full bg-indigo-600 text-white py-4 rounded-xl font-bold shadow-lg shadow-indigo-200 hover:bg-indigo-700 transition">Create Activity</button>
         </div>
     </div>
-
     <!-- Activity Detail Modal -->
     <div id="activityDetailModal" class="modal fixed inset-0 z-[60] bg-white hidden flex flex-col animate-slide-up">
         <div class="p-4 border-b border-slate-100 flex justify-between items-start bg-white z-10 shadow-sm">
@@ -149,7 +165,6 @@
             <button onclick="ActivityView.startReport()" class="w-full bg-emerald-600 text-white py-4 rounded-xl font-bold shadow-lg shadow-emerald-200 flex items-center justify-center gap-2"><i class="fa-solid fa-clipboard-check"></i> Complete & Report</button>
         </div>
     </div>
-
     <!-- Review Drawer (Bottom Sheet) -->
     <div id="reviewModal" class="modal fixed inset-0 z-[70] bg-slate-900/50 hidden flex items-end justify-center backdrop-blur-sm">
         <div class="bg-white w-full max-w-md rounded-t-3xl p-6 shadow-2xl animate-slide-up h-[85vh] flex flex-col">
@@ -168,13 +183,11 @@
             </div>
         </div>
     </div>
-
     <!-- LOG DRAWER (3-Path Wizard) -->
     <div id="logModal" class="modal fixed inset-0 z-[70] bg-slate-900/50 hidden flex items-end justify-center backdrop-blur-sm">
         <div class="bg-white w-full max-w-md rounded-t-3xl p-6 shadow-2xl animate-slide-up h-[85vh] flex flex-col">
-
+           
             <div class="w-full flex justify-center mb-2" onclick="Modals.close()"><div class="w-12 h-1.5 bg-slate-200 rounded-full cursor-pointer"></div></div>
-
             <div class="flex justify-between items-center mb-6 border-b border-slate-50 pb-4">
                 <div class="flex items-center gap-3">
                     <button id="logBackBtn" onclick="LogWizard.back()" class="hidden w-8 h-8 rounded-full bg-slate-100 text-slate-500 flex items-center justify-center hover:bg-slate-200 transition"><i class="fa-solid fa-arrow-left"></i></button>
@@ -182,34 +195,29 @@
                 </div>
                 <button onclick="Modals.close()" class="w-8 h-8 flex items-center justify-center bg-slate-100 rounded-full text-slate-400 hover:text-slate-600"><i class="fa-solid fa-times"></i></button>
             </div>
-
             <div class="flex-1 overflow-y-auto">
-
+               
                 <!-- STEP 1: CHOICE -->
                 <div id="logStep1" class="space-y-3">
                     <button onclick="LogWizard.goGeneral()" class="w-full bg-slate-50 border-2 border-slate-100 p-5 rounded-2xl flex items-center gap-4 hover:border-emerald-500 hover:bg-emerald-50 transition group text-left">
                         <div class="w-10 h-10 rounded-full bg-white shadow-sm flex items-center justify-center text-lg text-slate-400 group-hover:text-emerald-500 border border-slate-100"><i class="fa-solid fa-comment-dots"></i></div>
                         <div><h3 class="font-bold text-lg text-slate-700 group-hover:text-emerald-800">General</h3><p class="text-xs text-slate-400 group-hover:text-emerald-600">Daily update or mood.</p></div>
                     </button>
-
                     <button onclick="LogWizard.goFocused()" class="w-full bg-slate-50 border-2 border-slate-100 p-5 rounded-2xl flex items-center gap-4 hover:border-indigo-500 hover:bg-indigo-50 transition group text-left">
                         <div class="w-10 h-10 rounded-full bg-white shadow-sm flex items-center justify-center text-lg text-slate-400 group-hover:text-indigo-500 border border-slate-100"><i class="fa-solid fa-bullseye"></i></div>
                         <div><h3 class="font-bold text-lg text-slate-700 group-hover:text-indigo-800">Focused</h3><p class="text-xs text-slate-400 group-hover:text-indigo-600">Link to Areas of Development.</p></div>
                     </button>
-
                     <button onclick="LogWizard.goProgress()" class="w-full bg-slate-50 border-2 border-slate-100 p-5 rounded-2xl flex items-center gap-4 hover:border-blue-500 hover:bg-blue-50 transition group text-left">
                         <div class="w-10 h-10 rounded-full bg-white shadow-sm flex items-center justify-center text-lg text-slate-400 group-hover:text-blue-500 border border-slate-100"><i class="fa-solid fa-chart-simple"></i></div>
                         <div><h3 class="font-bold text-lg text-slate-700 group-hover:text-blue-800">Progress</h3><p class="text-xs text-slate-400 group-hover:text-blue-600">Detailed skills assessment.</p></div>
                     </button>
                 </div>
-
                 <!-- STEP: GENERAL INPUT -->
                 <div id="logStepGeneral" class="hidden flex flex-col h-full">
                     <div class="mb-4"><span class="inline-block px-3 py-1 bg-slate-100 text-slate-600 rounded-full text-xs font-bold uppercase tracking-wide border border-slate-200">General</span></div>
                     <textarea id="logNoteGeneral" class="w-full flex-1 bg-slate-50 border-2 border-slate-100 p-4 rounded-2xl text-base resize-none focus:bg-white focus:border-emerald-500 transition" placeholder="Write Observation..."></textarea>
                     <div class="mt-4 pb-4"><button onclick="ObsGeneral.submit()" id="btnSubmitGeneral" class="w-full bg-emerald-600 text-white py-4 rounded-xl font-bold shadow-lg transition">Save Observation</button></div>
                 </div>
-
                 <!-- STEP: FOCUSED INPUT (Tags) -->
                 <div id="logStepFocused" class="hidden flex flex-col h-full">
                     <div class="mb-4 space-y-4">
@@ -226,7 +234,6 @@
                     </div>
                     <div id="focusedHint" class="flex-1 flex items-center justify-center text-slate-400 text-sm italic">Select an Area above to start.</div>
                 </div>
-
                 <!-- STEP: PROGRESS SELECTOR -->
                 <div id="logStepProgress" class="hidden h-full flex flex-col relative">
                     <div class="flex-1 overflow-y-auto pb-24">
@@ -236,7 +243,6 @@
                         <button onclick="LogWizard.goToProgressNote()" class="w-full bg-blue-600 text-white py-4 rounded-xl font-bold shadow-lg">Add Progress</button>
                     </div>
                 </div>
-
                 <!-- STEP: PROGRESS NOTE -->
                 <div id="logStepProgressNote" class="hidden flex flex-col h-full">
                     <div class="mb-4">
@@ -249,11 +255,9 @@
                     <textarea id="logNoteProgress" class="w-full flex-1 bg-slate-50 border-2 border-slate-100 p-4 rounded-2xl text-base resize-none focus:bg-white focus:border-blue-500 transition" placeholder="Add optional observation..."></textarea>
                     <div class="mt-4 pb-4"><button onclick="ObsProgress.submit()" id="btnSubmitProgress" class="w-full bg-blue-600 text-white py-4 rounded-xl font-bold shadow-lg transition">Add Observation</button></div>
                 </div>
-
             </div>
         </div>
     </div>
-
     <!-- CORE SCRIPTS -->
     <script src="js/core/config.js"></script>
     <script src="js/core/labels.js"></script>
@@ -261,10 +265,9 @@
     <script src="js/core/utils.js"></script>
     <script src="js/core/api.js"></script>
     <script src="js/core/router.js"></script>
-
     <!-- COMPONENTS -->
     <script src="js/components/fab.js"></script>
-
+   
     <!-- MODAL MANAGERS -->
     <script src="js/components/modals/base.js"></script>
     <script src="js/components/modals/plan.js"></script>
@@ -273,7 +276,6 @@
     <script src="js/components/modals/observation/focused.js"></script>
     <script src="js/components/modals/observation/progress.js"></script>
     <script src="js/components/modals/observation/wizard.js"></script>
-
     <!-- FEED TILES -->
     <script src="js/views/feed/activity_tile.js"></script>
     <script src="js/views/feed/report_tile.js"></script>
@@ -281,11 +283,10 @@
     <script src="js/views/feed/progress_tile.js"></script>
     <script src="js/views/feed/insight_tile.js"></script>
     <script src="js/views/feed/base.js"></script>
-
     <!-- OTHER VIEWS -->
     <script src="js/views/progress.js"></script>
     <script src="js/views/activity.js"></script>
-
+   
     <!-- BOOTSTRAP -->
     <script src="js/main.js"></script>
 </body>
