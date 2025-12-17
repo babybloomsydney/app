@@ -1,20 +1,21 @@
 /**
- * MODAL MANAGER (Base)
- * Handles opening/closing overlays and initializing specific wizards.
+ * MODAL MANAGER (Defensive Version)
+ * Restored to match your original logic, plus safety stubs for main.js compatibility.
  */
 
 const Modals = {
-    // Generic Open
+    // --- 1. Your Original Core Logic ---
+
     open: (name) => {
-        // 1. Hide all open modals
+        // Hide all existing modals first
         document.querySelectorAll('.modal').forEach(m => m.classList.add('hidden'));
         
-        // 2. Show the target
+        // Find the modal by ID (e.g. "planModal")
         const target = document.getElementById(name + 'Modal');
         if (target) {
             target.classList.remove('hidden');
             
-            // 3. Initialize specific logic if needed
+            // Trigger specific wizard inits if they exist
             if (name === 'plan' && typeof PlanWizard !== 'undefined') {
                 PlanWizard.init();
             }
@@ -22,29 +23,26 @@ const Modals = {
                 LogWizard.init();
             }
         } else {
-            console.error(`Modal '${name}Modal' not found in HTML.`);
+            console.warn(`Modal ID '${name}Modal' not found.`);
         }
     },
     
-    // Generic Close
     close: () => {
         document.querySelectorAll('.modal').forEach(m => m.classList.add('hidden'));
     },
 
-    // --- COMPATIBILITY FIXES ---
-    // These functions are required because main.js calls them during startup.
-    // We add them here to prevent the "Not a function" crash.
-
+    // --- 2. Safety Stubs (To stop main.js from crashing) ---
+    // These functions might be called by main.js during startup.
+    
     initLog: () => {
-        // If main.js calls this, it likely wants to prepare the Log Wizard.
+        // If LogWizard exists, initialize it. If not, do nothing.
         if (typeof LogWizard !== 'undefined' && LogWizard.init) {
             LogWizard.init();
         }
     },
 
     renderAccordion: (items) => {
-        // If main.js calls this, we return empty string or handle it if needed.
-        // For now, an empty return prevents the crash.
+        // Return empty string to satisfy any render calls
         return "";
     }
 };
