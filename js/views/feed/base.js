@@ -75,6 +75,7 @@ const FeedView = {
                     return true; 
                 }
                 
+                // HIDE progress in 'All' if it's from an activity (too noisy)
                 if (item.type === 'PROGRESS') {
                     if (item.context === 'ACTIVITY') return false;
                     return true;
@@ -83,15 +84,16 @@ const FeedView = {
                 return false;
             }
 
-            // Tab: ACTIVITIES (New)
+            // Tab: ACTIVITIES
             if (mode === 'Activities') {
                 return item.type === 'ACTIVITY' || item.type === 'REPORT';
             }
 
-            // Tab: OBS
+            // Tab: OBSERVATIONS
             if (mode === 'Obs') return item.type === 'OBSERVATION';
 
-            // Tab: GROWTH (Updated: show all PROGRESS items regardless of context)
+            // Tab: GROWTH (SHOW ALL PROGRESS)
+            // Fix: We specifically check for PROGRESS type and IGNORE context so all updates appear here.
             if (mode === 'Growth') {
                 return item.type === 'PROGRESS';
             }
