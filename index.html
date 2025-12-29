@@ -37,10 +37,8 @@
         <div id="view-feed" class="view-section space-y-4 min-h-[50vh]">
             
             <!-- FEED FILTERS (Sticky Top) -->
-            <!-- Updated: Added Activities tab, centered content -->
             <div class="sticky top-20 z-30 bg-slate-50 pt-2 pb-2 -mx-4 px-4 flex gap-2 overflow-x-auto no-scrollbar justify-start sm:justify-center" id="feedFilterBar">
                 <button onclick="FeedView.filter('All')" class="filter-pill active bg-slate-800 text-white px-4 py-1.5 rounded-full text-xs font-bold shadow-md transition whitespace-nowrap ring-1 ring-slate-800">All</button>
-                <!-- New Activities Tab -->
                 <button onclick="FeedView.filter('Activities')" class="filter-pill bg-white text-slate-500 border border-slate-200 px-4 py-1.5 rounded-full text-xs font-bold shadow-sm transition whitespace-nowrap">Activities</button>
                 <button onclick="FeedView.filter('Obs')" class="filter-pill bg-white text-slate-500 border border-slate-200 px-4 py-1.5 rounded-full text-xs font-bold shadow-sm transition whitespace-nowrap">Obs</button>
                 <button onclick="FeedView.filter('Growth')" class="filter-pill bg-white text-slate-500 border border-slate-200 px-4 py-1.5 rounded-full text-xs font-bold shadow-sm transition whitespace-nowrap">Growth</button>
@@ -63,7 +61,7 @@
         </div>
     </div>
 
-    <!-- 3. FAB (Moved up to clear Bottom Nav) -->
+    <!-- 3. FAB -->
     <div class="fixed bottom-20 right-6 z-50 flex flex-col items-end gap-3 pointer-events-none">
         <div id="fabMenu" class="hidden flex flex-col items-end gap-3 mb-2 pointer-events-auto">
             <button onclick="FAB.openPlan()" class="flex items-center gap-3 bg-white text-slate-600 py-2.5 px-5 rounded-full shadow-xl shadow-slate-200 border border-slate-50 animate-slide-up hover:scale-105 transition"><span class="font-bold text-sm">Plan Activity</span><div class="w-8 h-8 rounded-full bg-indigo-100 text-indigo-600 flex items-center justify-center"><i class="fa-solid fa-wand-magic-sparkles"></i></div></button>
@@ -74,10 +72,9 @@
         </button>
     </div>
 
-    <!-- 4. BOTTOM NAV (New) -->
+    <!-- 4. BOTTOM NAV -->
     <div class="fixed bottom-0 w-full z-40 bg-white border-t border-slate-100 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.02)] pb-safe">
         <div class="max-w-md mx-auto grid grid-cols-2 h-16">
-            <!-- Removed Text spans, relying on flex properties in CSS/Tailwind for centering -->
             <button onclick="Router.navigate('feed')" id="nav-feed" class="nav-item flex flex-col items-center justify-center text-emerald-600 transition h-full w-full">
                 <i class="fa-solid fa-house text-2xl"></i>
             </button>
@@ -157,6 +154,13 @@
                 <div><h3 id="reviewTitle" class="font-bold leading-tight"></h3><p class="text-xs text-slate-400">Rate performance</p></div>
                 <div id="reviewObjectives" class="space-y-6"></div>
                 <div><label class="text-xs font-bold text-slate-400 uppercase ml-1">Notes</label><textarea id="reviewNote" class="w-full bg-slate-50 border p-4 rounded-xl text-sm h-24 resize-none focus:bg-white transition" placeholder="How did it go?"></textarea></div>
+                
+                <!-- NEW: Review Image Input -->
+                <div class="bg-slate-50 p-4 rounded-xl border border-slate-100">
+                    <label class="block text-xs font-bold text-slate-400 uppercase mb-2">Evidence (Optional)</label>
+                    <input type="file" id="reviewImageInput" accept="image/*" class="w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"/>
+                </div>
+
             </div>
             <div class="pt-4 border-t border-slate-100">
                 <button onclick="ReviewModal.submit()" class="submit-btn w-full bg-emerald-600 text-white py-4 rounded-xl font-bold shadow-lg shadow-emerald-200">Submit Report</button>
@@ -201,6 +205,12 @@
                 <!-- STEP: GENERAL INPUT -->
                 <div id="logStepGeneral" class="hidden flex flex-col h-full">
                     <div class="mb-4"><span class="inline-block px-3 py-1 bg-slate-100 text-slate-600 rounded-full text-xs font-bold uppercase tracking-wide border border-slate-200">General</span></div>
+                    
+                    <!-- NEW: General Image Input -->
+                    <div class="mb-4">
+                        <input type="file" id="logImageGeneral" accept="image/*" class="w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-slate-100 file:text-slate-700 hover:file:bg-slate-200 transition"/>
+                    </div>
+
                     <textarea id="logNoteGeneral" class="w-full flex-1 bg-slate-50 border-2 border-slate-100 p-4 rounded-2xl text-base resize-none focus:bg-white focus:border-emerald-500 transition" placeholder="Write Observation..."></textarea>
                     <div class="mt-4 pb-4"><button onclick="ObsGeneral.submit()" id="btnSubmitGeneral" class="w-full bg-emerald-600 text-white py-4 rounded-xl font-bold shadow-lg transition">Save Observation</button></div>
                 </div>
@@ -214,6 +224,12 @@
                         </div>
                         <div id="activeTags" class="flex flex-wrap gap-2 min-h-[40px]"></div>
                     </div>
+                    
+                    <!-- NEW: Focused Image Input -->
+                    <div class="mb-4">
+                        <input type="file" id="logImageFocused" accept="image/*" class="w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-slate-100 file:text-slate-700 hover:file:bg-slate-200 transition"/>
+                    </div>
+
                     <div id="focusedInputArea" class="hidden flex-1 flex flex-col">
                         <label class="text-xs font-bold text-slate-400 uppercase ml-1 mb-1">Observation</label>
                         <textarea id="logNoteFocused" class="w-full flex-1 bg-slate-50 border-2 border-slate-100 p-4 rounded-2xl text-base resize-none focus:bg-white focus:border-indigo-500 transition" placeholder="Details..."></textarea>
@@ -241,6 +257,12 @@
                             <button onclick="ObsProgress.submit()" id="btnSkipNote" class="text-xs font-bold text-slate-400 hover:text-slate-600">Skip Note</button>
                         </div>
                     </div>
+                    
+                    <!-- NEW: Progress Image Input -->
+                    <div class="mb-4">
+                        <input type="file" id="logImageProgress" accept="image/*" class="w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-slate-100 file:text-slate-700 hover:file:bg-slate-200 transition"/>
+                    </div>
+
                     <textarea id="logNoteProgress" class="w-full flex-1 bg-slate-50 border-2 border-slate-100 p-4 rounded-2xl text-base resize-none focus:bg-white focus:border-blue-500 transition" placeholder="Add optional observation..."></textarea>
                     <div class="mt-4 pb-4"><button onclick="ObsProgress.submit()" id="btnSubmitProgress" class="w-full bg-blue-600 text-white py-4 rounded-xl font-bold shadow-lg transition">Add Observation</button></div>
                 </div>
