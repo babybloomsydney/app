@@ -10,25 +10,22 @@ const Cloudinary = {
         if (!fileInput || !fileInput.files || fileInput.files.length === 0) return null;
         
         const file = fileInput.files[0];
-        const timestamp = new Date().getTime();
-        
-        // Construct Custom Filename: contactID-timestamp
-        const contactID = (typeof STATE !== 'undefined' && STATE.user && STATE.user.id) ? STATE.user.id : 'unknown_user';
-        const customFileName = `${contactID}-${timestamp}`;
-
         const formData = new FormData();
+        
+        // Essential Fields
         formData.append('file', file);
         formData.append('upload_preset', Cloudinary.uploadPreset);
-        formData.append('folder', 'APP_UPLOADS'); 
         
-        // FORCE CUSTOM FILENAME
-        formData.append('public_id', customFileName);
+        // Organization
+        // If Cloudinary returns 400, try removing 'folder' and see if it works.
+        formData.append('folder', `babybloom/${childId}`); 
         
-        // TAGS for management
-        formData.append('tags', `child_${childId},user_${contactID}`);
+        // Tagging
+        formData.append('tags', `child_${childId}`);
 
-        // FORCE OPTIMIZATION via API parameters
-        formData.append('transformation', 'f_auto,q_auto'); 
+        // Note: We removed 'public_id' setting as it often requires specific 
+        // Signed/Unsigned permissions that default presets block.
+        // We also rely on the Preset's own transformation settings now to avoid 400s.
 
         try {
             const res = await fetch(`https://api.cloudinary.com/v1_1/${Cloudinary.cloudName}/image/upload`, {
@@ -36,12 +33,17 @@ const Cloudinary = {
                 body: formData
             });
             
-            if (!res.ok) throw new Error("Cloudinary Upload Failed");
+            if (!res.ok) {
+                const errData = await res.json();
+                console.error("Cloudinary Detailed Error:", errData);
+                throw new Error(errData.error?.message || "Upload Failed");
+            }
             
             const data = await res.json();
             return data.secure_url; 
         } catch (error) {
             console.error("Cloudinary Upload Error:", error);
+            // Fallback: If upload fails, return null so the log is still saved (without image)
             return null;
         }
     }
