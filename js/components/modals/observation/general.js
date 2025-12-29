@@ -16,7 +16,8 @@ const ObsGeneral = {
 
         // --- NEW: HANDLE IMAGE UPLOAD ---
         let imageUrl = null;
-        const fileInput = document.getElementById('logImageInput');
+        // CORRECTED ID: Matches the specific input in index.html
+        const fileInput = document.getElementById('logImageGeneral');
         
         if (fileInput && fileInput.files.length > 0) {
             imageUrl = await Cloudinary.uploadImage(fileInput, STATE.child.childId);
@@ -31,6 +32,10 @@ const ObsGeneral = {
             btn.innerText = oldText;
             btn.classList.remove('btn-success');
             btn.disabled = false;
+            
+            // Clear input for next time
+            if (fileInput) fileInput.value = ""; 
+            
             Modals.close();
             if (typeof FeedView !== 'undefined') FeedView.render();
         }, 800);
