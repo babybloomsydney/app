@@ -1,6 +1,6 @@
 /**
  * REVIEW MODAL
- * Handles the Activity Reporting logic.
+ * Handles the Activity Reporting logic with Image Upload support.
  * Dependency: js/core/labels.js (TXT)
  */
 
@@ -71,8 +71,14 @@ const ReviewModal = {
         
         // 6. Reset Note
         const noteInput = document.getElementById('reviewNote');
-        noteInput.value = "";
-        noteInput.placeholder = T.PLACEHOLDER_NOTES;
+        if (noteInput) {
+            noteInput.value = "";
+            noteInput.placeholder = T.PLACEHOLDER_NOTES;
+        }
+
+        // 7. Reset Image Input (NEW)
+        const fileInput = document.getElementById('reviewImageInput');
+        if (fileInput) fileInput.value = "";
 
         Modals.open('review');
     },
@@ -103,26 +109,40 @@ const ReviewModal = {
             ratings.push({id: b.dataset.id, score: parseInt(b.dataset.score)});
         });
         
+        // Validation: Ensure at least one rating (Optional: remove if partials allowed)
         if (ratings.length === 0) return alert(T.ERROR_NO_SELECTION);
 
         // UI Feedback
         const btn = document.getElementById('reviewSubmitBtn') || document.querySelector('#reviewModal button.submit-btn'); 
+        const originalText = btn ? btn.innerText : "Submit";
+        
         if(btn) {
-            btn.innerText = T.BTN_SUBMITTING; 
+            btn.innerText = "Uploading Evidence..."; 
             btn.disabled = true;
         }
         
-        // API Call
+        // --- NEW: HANDLE IMAGE UPLOAD ---
+        let imageUrl = null;
+        const fileInput = document.getElementById('reviewImageInput');
+        
+        if (fileInput && fileInput.files.length > 0) {
+            imageUrl = await Cloudinary.uploadImage(fileInput, STATE.child.childId);
+        }
+
+        if(btn) btn.innerText = T.BTN_SUBMITTING;
+
+        // API Call (Pass imageUrl)
         await API.submitReport(
             STATE.child.childId, 
             finalActivityId, 
             ratings, 
-            document.getElementById('reviewNote').value
+            document.getElementById('reviewNote').value,
+            imageUrl // <-- Passed here
         );
         
         // Reset & Close
         if(btn) {
-            btn.innerText = T.BTN_SUBMIT; 
+            btn.innerText = originalText; 
             btn.disabled = false;
         }
         
