@@ -9,17 +9,22 @@ const FeedCard_Report = {
             const parent = STATE.feed.find(x => x.id === parentId);
             if (parent) {
                 const ai = parent.data?.activityJson;
-                // This is the key: handle PENDING case explicitly
                 if (ai && typeof ai === 'object' && ai.creativeName) {
                     parentTitle = ai.creativeName;
                 } else if (parent.title) {
                     parentTitle = parent.title;
                 }
-                // If still no title, keep the fallback — it will update on next render
             }
         }
 
-        // Progress section (unchanged, safe)
+        // --- NEW: Image Logic ---
+        const imageHtml = item.data.imageUrl 
+            ? `<div class="mb-3 rounded-xl overflow-hidden border border-slate-100 bg-slate-50">
+                 <img src="${item.data.imageUrl}" class="w-full h-auto object-cover" loading="lazy" alt="Activity Evidence" />
+               </div>`
+            : "";
+
+        // Progress section
         let progressHtml = "";
         const progressItem = STATE.feed.find(x => x.type === "PROGRESS" && x.refs?.includes(item.id));
         if (progressItem?.data?.updates?.length > 0) {
@@ -32,7 +37,8 @@ const FeedCard_Report = {
             progressHtml += `</div></div>`;
         }
 
-        return `<div class="feed-item bg-white p-5 rounded-2xl shadow-sm border border-slate-100 mb-4">
+        return `
+        <div class="feed-item bg-white p-5 rounded-2xl shadow-sm border border-slate-100 mb-4">
             <div class="flex justify-between items-center mb-1">
                 <div class="flex items-center gap-2">
                     <div class="w-6 h-6 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center text-xs">
@@ -42,6 +48,9 @@ const FeedCard_Report = {
                 </div>
                 <span class="text-[10px] text-gray-400">${date}</span>
             </div>
+            
+            ${imageHtml} <!-- Image injected here -->
+
             <h3 class="font-bold text-slate-800 text-lg mb-2 leading-tight">${parentTitle}</h3>
             ${item.data?.feedback ? `<p class="text-sm text-slate-600 leading-relaxed mb-3">${item.data.feedback}</p>` : ''}
             ${progressHtml}
