@@ -1,9 +1,10 @@
 /**
  * OBSERVATION: FOCUSED
- * Handles multi-select domain tagging.
+ * Handles multi-select domain tagging with Image Upload support.
  */
 const ObsFocused = {
     domains: [],
+    
     init: () => {
         ObsFocused.domains = [];
         const sel = document.getElementById('logDomainSelect');
@@ -15,6 +16,7 @@ const ObsFocused = {
         }
         ObsFocused.renderTags();
     },
+
     addDomain: (select) => {
         const val = select.value;
         if (!val) return;
@@ -24,10 +26,12 @@ const ObsFocused = {
         }
         select.value = "";
     },
+
     removeDomain: (code) => {
         ObsFocused.domains = ObsFocused.domains.filter(d => d !== code);
         ObsFocused.renderTags();
     },
+
     renderTags: () => {
         const c = document.getElementById('activeTags');
         c.innerHTML = "";
@@ -48,6 +52,8 @@ const ObsFocused = {
             inp.classList.add('hidden'); hint.classList.remove('hidden');
         }
     },
+
+    // --- UPDATED SUBMIT FUNCTION ---
     submit: async () => {
         const note = document.getElementById('logNoteFocused').value;
         if(!note.trim()) return alert("Please write an observation.");
@@ -61,7 +67,8 @@ const ObsFocused = {
 
         // --- NEW: HANDLE IMAGE UPLOAD ---
         let imageUrl = null;
-        const fileInput = document.getElementById('logImageInput');
+        // Looking for unique ID 'logImageFocused'
+        const fileInput = document.getElementById('logImageFocused');
         
         if (fileInput && fileInput.files.length > 0) {
             imageUrl = await Cloudinary.uploadImage(fileInput, STATE.child.childId);
@@ -69,13 +76,17 @@ const ObsFocused = {
 
         btn.innerHTML = `<i class="fa-solid fa-check mr-2"></i> ${TXT.COMPONENTS.MODALS.OBSERVATION.SUCCESS_MSG}`;
         btn.classList.add('btn-success');
-
+        
         await API.logObservation(STATE.child.childId, ObsFocused.domains.join(", "), null, null, note, imageUrl);
         
         setTimeout(() => {
             btn.innerText = oldText;
             btn.classList.remove('btn-success');
             btn.disabled = false;
+            
+            // Clear input
+            if (fileInput) fileInput.value = ""; 
+            
             Modals.close();
             if (typeof FeedView !== 'undefined') FeedView.render();
         }, 800);
