@@ -12,9 +12,9 @@ const ObsProgress = {
     renderSelector: () => {
         const c = document.getElementById('progressAccordion');
         if(!c) return; c.innerHTML = "";
-       
+        
         const grouped = Utils.groupLibrary(STATE.library);
-       
+        
         Object.keys(grouped).forEach((dom, i) => {
             const domLabel = CONFIG.DOMAINS[dom] || dom;
             let html = `
@@ -54,7 +54,7 @@ const ObsProgress = {
     toggleAcc: (btn) => {
         const content = btn.nextElementSibling;
         const icon = btn.querySelector('.fa-chevron-down');
-       
+        
         if(content.style.maxHeight) {
             content.style.maxHeight = null;
             icon.classList.remove('rotate-180');
@@ -74,11 +74,11 @@ const ObsProgress = {
         } else {
             ObsProgress.scores[id] = score;
         }
-       
+        
         const current = ObsProgress.scores[id];
         const badge = document.getElementById(`badge-${id}`);
         const card = document.getElementById(`card-${id}`);
-       
+        
         if(current) {
             badge.innerText = TXT.CORE.SCORES[current];
             badge.classList.remove('hidden');
@@ -96,12 +96,12 @@ const ObsProgress = {
         const container = document.getElementById('progressSummaryContainer');
         if(!container) return;
         container.innerHTML = "";
-       
+        
         Object.keys(ObsProgress.scores).forEach(id => {
             const score = ObsProgress.scores[id];
             const m = STATE.library.find(x => x.id === id);
             const dom = m ? (CONFIG.DOMAINS[m.domain] || m.domain) : TXT.CORE.UNKNOWN_DOMAIN;
-           
+            
             container.innerHTML += `
             <div class="bg-white p-2 rounded-lg border border-blue-100 mb-1 flex justify-between items-center shadow-sm">
                 <div class="truncate mr-2 w-3/4">
@@ -115,14 +115,29 @@ const ObsProgress = {
     submit: async () => {
         const note = document.getElementById('logNoteProgress').value;
         const updates = Object.keys(ObsProgress.scores).map(id => ({id: id, score: ObsProgress.scores[id]}));
-       
+        
         if(updates.length === 0) return alert(TXT.COMPONENTS.MODALS.OBSERVATION.PROGRESS.ERROR_NO_SELECTION);
+        
         const btn = document.getElementById('btnSubmitProgress');
         const oldText = btn.innerText;
+        
+        // UI Feedback
+        btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin mr-2"></i> Uploading...`;
+        btn.disabled = true;
+
+        // --- NEW: HANDLE IMAGE UPLOAD ---
+        let imageUrl = null;
+        const fileInput = document.getElementById('logImageInput');
+        
+        if (fileInput && fileInput.files.length > 0) {
+            imageUrl = await Cloudinary.uploadImage(fileInput, STATE.child.childId);
+        }
+
         btn.innerHTML = `<i class="fa-solid fa-check mr-2"></i> ${TXT.COMPONENTS.MODALS.OBSERVATION.SUCCESS_MSG}`;
         btn.classList.add('btn-success');
-        btn.disabled = true;
-        await API.logBulkUpdate(STATE.child.childId, updates, note);
+
+        await API.logBulkUpdate(STATE.child.childId, updates, note, imageUrl);
+        
         setTimeout(() => {
             btn.innerText = oldText;
             btn.classList.remove('btn-success');
