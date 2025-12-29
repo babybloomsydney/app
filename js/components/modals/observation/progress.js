@@ -1,14 +1,16 @@
 /**
  * OBSERVATION: PROGRESS
- * Handles detailed assessment matrix updates.
+ * Handles detailed assessment matrix updates with Image Upload support.
  */
 const ObsProgress = {
     scores: {}, // Map of { id: score }
+    
     init: () => {
         ObsProgress.scores = {};
         ObsProgress.renderSelector();
         document.getElementById('progressFooter').classList.add('hidden');
     },
+
     renderSelector: () => {
         const c = document.getElementById('progressAccordion');
         if(!c) return; c.innerHTML = "";
@@ -51,6 +53,7 @@ const ObsProgress = {
             c.innerHTML += html + `</div></div></div>`;
         });
     },
+
     toggleAcc: (btn) => {
         const content = btn.nextElementSibling;
         const icon = btn.querySelector('.fa-chevron-down');
@@ -65,9 +68,11 @@ const ObsProgress = {
             icon.classList.add('rotate-180');
         }
     },
+
     toggleItem: (id) => {
         document.getElementById(`prog-opts-${id}`).classList.toggle('hidden');
     },
+
     selectScore: (id, score) => {
         if (ObsProgress.scores[id] === score) {
             delete ObsProgress.scores[id];
@@ -92,6 +97,7 @@ const ObsProgress = {
         if(hasSelection) document.getElementById('progressFooter').classList.remove('hidden');
         else document.getElementById('progressFooter').classList.add('hidden');
     },
+
     renderSummary: () => {
         const container = document.getElementById('progressSummaryContainer');
         if(!container) return;
@@ -112,6 +118,7 @@ const ObsProgress = {
             </div>`;
         });
     },
+
     submit: async () => {
         const note = document.getElementById('logNoteProgress').value;
         const updates = Object.keys(ObsProgress.scores).map(id => ({id: id, score: ObsProgress.scores[id]}));
@@ -127,7 +134,8 @@ const ObsProgress = {
 
         // --- NEW: HANDLE IMAGE UPLOAD ---
         let imageUrl = null;
-        const fileInput = document.getElementById('logImageInput');
+        // Use the specific ID created in index.html for this tab
+        const fileInput = document.getElementById('logImageProgress');
         
         if (fileInput && fileInput.files.length > 0) {
             imageUrl = await Cloudinary.uploadImage(fileInput, STATE.child.childId);
@@ -136,12 +144,17 @@ const ObsProgress = {
         btn.innerHTML = `<i class="fa-solid fa-check mr-2"></i> ${TXT.COMPONENTS.MODALS.OBSERVATION.SUCCESS_MSG}`;
         btn.classList.add('btn-success');
 
+        // Pass imageUrl to API.logBulkUpdate
         await API.logBulkUpdate(STATE.child.childId, updates, note, imageUrl);
         
         setTimeout(() => {
             btn.innerText = oldText;
             btn.classList.remove('btn-success');
             btn.disabled = false;
+            
+            // Clear input
+            if (fileInput) fileInput.value = "";
+            
             Modals.close();
             if (typeof FeedView !== 'undefined') FeedView.render();
             if (typeof ProgressView !== 'undefined') ProgressView.render();
