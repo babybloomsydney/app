@@ -2,13 +2,9 @@
  * FEED CARD: PROGRESS
  * Renders a "Skills Update" card.
  */
-
 const FeedCard_Progress = {
     render: (item) => {
-        // --- THE FIX ---
-        // I have removed the line: if(item.refs && item.refs.length > 0) return "";
-        // This ensures the card renders even if it is linked to an Activity.
-
+        // NOTE: The suppression line (refs check) is purposefully removed here to allow Growth tab visibility.
         const date = Utils.formatDate(item.timestamp);
         
         // Handle optional note
@@ -16,6 +12,13 @@ const FeedCard_Progress = {
             ? `<div class="mb-3 pb-3 border-b border-slate-100"><p class="text-sm text-slate-600 italic">${item.data.note}</p></div>` 
             : "";
         
+        // --- NEW: Image Logic ---
+        const imageHtml = item.data.imageUrl 
+            ? `<div class="mb-3 rounded-xl overflow-hidden border border-slate-100 bg-slate-50">
+                 <img src="${item.data.imageUrl}" class="w-full h-auto object-cover" loading="lazy" alt="Evidence" />
+               </div>`
+            : "";
+
         // Build list of skills
         let list = "";
         (item.data.updates || []).forEach(u => {
@@ -46,7 +49,10 @@ const FeedCard_Progress = {
                 </div>
                 <span class="text-[10px] text-gray-400">${date}</span>
             </div>
+            
             ${noteHtml}
+            ${imageHtml} <!-- Image injected here -->
+            
             <div class="bg-white rounded-xl border border-slate-100 px-3">
                 ${list}
             </div>
