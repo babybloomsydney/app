@@ -31,7 +31,7 @@ const ObsFocused = {
     renderTags: () => {
         const c = document.getElementById('activeTags');
         c.innerHTML = "";
-       
+        
         ObsFocused.domains.forEach(code => {
             c.innerHTML += `
             <div class="inline-flex items-center gap-2 px-3 py-2 bg-indigo-100 text-indigo-700 rounded-lg text-xs font-bold border border-indigo-200 animate-fade-in">
@@ -41,7 +41,7 @@ const ObsFocused = {
         });
         const inp = document.getElementById('focusedInputArea');
         const hint = document.getElementById('focusedHint');
-       
+        
         if (ObsFocused.domains.length > 0) {
             inp.classList.remove('hidden'); hint.classList.add('hidden');
         } else {
@@ -50,13 +50,28 @@ const ObsFocused = {
     },
     submit: async () => {
         const note = document.getElementById('logNoteFocused').value;
-        if(!note.trim()) return alert("Please write an obervation.");
+        if(!note.trim()) return alert("Please write an observation.");
+        
         const btn = document.getElementById('btnSubmitFocused');
         const oldText = btn.innerText;
+        
+        // UI Feedback
+        btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin mr-2"></i> Uploading...`;
+        btn.disabled = true;
+
+        // --- NEW: HANDLE IMAGE UPLOAD ---
+        let imageUrl = null;
+        const fileInput = document.getElementById('logImageInput');
+        
+        if (fileInput && fileInput.files.length > 0) {
+            imageUrl = await Cloudinary.uploadImage(fileInput, STATE.child.childId);
+        }
+
         btn.innerHTML = `<i class="fa-solid fa-check mr-2"></i> ${TXT.COMPONENTS.MODALS.OBSERVATION.SUCCESS_MSG}`;
         btn.classList.add('btn-success');
-        btn.disabled = true;
-        await API.logObservation(STATE.child.childId, ObsFocused.domains.join(", "), null, null, note);
+
+        await API.logObservation(STATE.child.childId, ObsFocused.domains.join(", "), null, null, note, imageUrl);
+        
         setTimeout(() => {
             btn.innerText = oldText;
             btn.classList.remove('btn-success');
