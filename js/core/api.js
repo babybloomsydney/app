@@ -1,6 +1,6 @@
 /**
  * API SERVICE
- * Handles network requests. No UI logic.
+ * Handles network requests.
  */
 async function sendRequest(payload) {
     try {
@@ -17,73 +17,48 @@ async function sendRequest(payload) {
         return { status: "error", message: "Connection failed. Please check internet." };
     }
 }
+
 const API = {
-    // --- READERS ---
-    fetchChildren: async () => {
-        return await sendRequest({
-            action: "getUserChildren",
-            userId: STATE.user.id,
-            userType: STATE.user.role
-        });
-    },
-    fetchLibrary: async () => {
-        // Check cache first
-        if (STATE.library.length > 0) return { status: "success", data: STATE.library };
-        // Fallback to server if static file failed or empty
-        return await sendRequest({ action: "getMilestoneLibrary" });
-    },
-    fetchFeed: async (childId) => {
-        return await sendRequest({ action: "getFeed", childId });
-    },
-    fetchStats: async (childId) => {
-        return await sendRequest({ action: "getDashboardData", childId });
-    },
-   
-    fetchProgress: async (childId) => {
-        return await sendRequest({ action: "getChildProgress", childId });
-    },
-    // NEW: Fetch Historical Snapshots
-    fetchHistory: async (childId) => {
-        return await sendRequest({ action: "getChildHistory", childId: childId });
-    },
-    // --- WRITERS ---
+    // --- READERS (Unchanged) ---
+    fetchChildren: async () => sendRequest({ action: "getUserChildren", userId: STATE.user.id, userType: STATE.user.role }),
+    fetchLibrary: async () => STATE.library.length > 0 ? { status: "success", data: STATE.library } : sendRequest({ action: "getMilestoneLibrary" }),
+    fetchFeed: async (childId) => sendRequest({ action: "getFeed", childId }),
+    fetchStats: async (childId) => sendRequest({ action: "getDashboardData", childId }),
+    fetchProgress: async (childId) => sendRequest({ action: "getChildProgress", childId }),
+    fetchHistory: async (childId) => sendRequest({ action: "getChildHistory", childId }),
+
+    // --- WRITERS (Updated) ---
     generatePlan: async (childId, objectives) => {
         return await sendRequest({
             action: "generateActivity",
-            childId,
-            objectives,
-            authorId: STATE.user.id
+            childId, objectives, authorId: STATE.user.id
         });
     },
-    submitReport: async (childId, activityId, ratings, note) => {
+
+    submitReport: async (childId, activityId, ratings, note, imageUrl) => {
         return await sendRequest({
             action: "submitActivityReport",
-            childId,
-            activityId,
-            ratings,
-            feedback: note,
+            childId, activityId, ratings, feedback: note, 
             authorId: STATE.user.id,
-            refs: [activityId]  // Restored to fix null refs/feed hiding
+            imageUrl: imageUrl, 
+            refs: [activityId]
         });
     },
-    logObservation: async (childId, domain, milestoneId, score, note) => {
+
+    logObservation: async (childId, domain, milestoneId, score, note, imageUrl) => {
         return await sendRequest({
             action: "logAdHocObservation",
-            childId,
-            domain,
-            milestoneId,
-            score,
-            note,
+            childId, domain, milestoneId, score, note, 
+            imageUrl: imageUrl, 
             authorId: STATE.user.id
         });
     },
    
-    logBulkUpdate: async (childId, updates, note) => {
+    logBulkUpdate: async (childId, updates, note, imageUrl) => {
         return await sendRequest({
             action: "logBulkProgress",
-            childId,
-            updates,
-            note: note,
+            childId, updates, note: note, 
+            imageUrl: imageUrl, 
             authorId: STATE.user.id
         });
     }
