@@ -6,12 +6,27 @@ const ObsGeneral = {
     submit: async () => {
         const note = document.getElementById('logNoteGeneral').value;
         if(!note.trim()) return alert("Please write an observation.");
+        
         const btn = document.getElementById('btnSubmitGeneral');
         const oldText = btn.innerText;
+        
+        // UI Feedback
+        btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin mr-2"></i> Uploading...`;
+        btn.disabled = true;
+
+        // --- NEW: HANDLE IMAGE UPLOAD ---
+        let imageUrl = null;
+        const fileInput = document.getElementById('logImageInput');
+        
+        if (fileInput && fileInput.files.length > 0) {
+            imageUrl = await Cloudinary.uploadImage(fileInput, STATE.child.childId);
+        }
+
         btn.innerHTML = `<i class="fa-solid fa-check mr-2"></i> ${TXT.COMPONENTS.MODALS.OBSERVATION.SUCCESS_MSG}`;
         btn.classList.add('btn-success');
-        btn.disabled = true;
-        await API.logObservation(STATE.child.childId, "General", null, null, note);
+
+        await API.logObservation(STATE.child.childId, "General", null, null, note, imageUrl);
+        
         setTimeout(() => {
             btn.innerText = oldText;
             btn.classList.remove('btn-success');
