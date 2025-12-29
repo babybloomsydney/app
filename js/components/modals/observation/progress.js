@@ -119,6 +119,7 @@ const ObsProgress = {
         });
     },
 
+    // --- UPDATED SUBMIT FUNCTION ---
     submit: async () => {
         const note = document.getElementById('logNoteProgress').value;
         const updates = Object.keys(ObsProgress.scores).map(id => ({id: id, score: ObsProgress.scores[id]}));
@@ -134,7 +135,7 @@ const ObsProgress = {
 
         // --- NEW: HANDLE IMAGE UPLOAD ---
         let imageUrl = null;
-        // Use the specific ID created in index.html for this tab
+        // Looking for unique ID 'logImageProgress'
         const fileInput = document.getElementById('logImageProgress');
         
         if (fileInput && fileInput.files.length > 0) {
@@ -144,7 +145,6 @@ const ObsProgress = {
         btn.innerHTML = `<i class="fa-solid fa-check mr-2"></i> ${TXT.COMPONENTS.MODALS.OBSERVATION.SUCCESS_MSG}`;
         btn.classList.add('btn-success');
 
-        // Pass imageUrl to API.logBulkUpdate
         await API.logBulkUpdate(STATE.child.childId, updates, note, imageUrl);
         
         setTimeout(() => {
