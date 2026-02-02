@@ -15,7 +15,7 @@
 </head>
 <body class="font-sans text-slate-800 bg-slate-50">
 
-    <!-- 1. TOP NAV (Header Only) -->
+    <!-- 1. TOP NAV -->
     <div class="fixed top-0 w-full z-40 bg-white/95 backdrop-blur-sm border-b border-slate-100">
         <div class="max-w-md mx-auto px-4 py-3 flex justify-between items-center">
             <div class="flex items-center gap-3">
@@ -35,8 +35,6 @@
         
         <!-- FEED VIEW -->
         <div id="view-feed" class="view-section space-y-4 min-h-[50vh]">
-            
-            <!-- FEED FILTERS (Sticky Top) -->
             <div class="sticky top-20 z-30 bg-slate-50 pt-2 pb-2 -mx-4 px-4 flex gap-2 overflow-x-auto no-scrollbar justify-start sm:justify-center" id="feedFilterBar">
                 <button onclick="FeedView.filter('All')" class="filter-pill active bg-slate-800 text-white px-4 py-1.5 rounded-full text-xs font-bold shadow-md transition whitespace-nowrap ring-1 ring-slate-800">All</button>
                 <button onclick="FeedView.filter('Activities')" class="filter-pill bg-white text-slate-500 border border-slate-200 px-4 py-1.5 rounded-full text-xs font-bold shadow-sm transition whitespace-nowrap">Activities</button>
@@ -44,7 +42,6 @@
                 <button onclick="FeedView.filter('Growth')" class="filter-pill bg-white text-slate-500 border border-slate-200 px-4 py-1.5 rounded-full text-xs font-bold shadow-sm transition whitespace-nowrap">Growth</button>
                 <button onclick="FeedView.filter('Insight')" class="filter-pill bg-white text-slate-500 border border-slate-200 px-4 py-1.5 rounded-full text-xs font-bold shadow-sm transition whitespace-nowrap">Insights</button>
             </div>
-
             <div id="feedContainer"></div>
         </div>
 
@@ -66,6 +63,8 @@
         <div id="fabMenu" class="hidden flex flex-col items-end gap-3 mb-2 pointer-events-auto">
             <button onclick="FAB.openPlan()" class="flex items-center gap-3 bg-white text-slate-600 py-2.5 px-5 rounded-full shadow-xl shadow-slate-200 border border-slate-50 animate-slide-up hover:scale-105 transition"><span class="font-bold text-sm">Plan Activity</span><div class="w-8 h-8 rounded-full bg-indigo-100 text-indigo-600 flex items-center justify-center"><i class="fa-solid fa-wand-magic-sparkles"></i></div></button>
             <button onclick="FAB.openLog()" class="flex items-center gap-3 bg-white text-slate-600 py-2.5 px-5 rounded-full shadow-xl shadow-slate-200 border border-slate-50 animate-slide-up hover:scale-105 transition" style="animation-delay: 0.05s"><span class="font-bold text-sm">Observation</span><div class="w-8 h-8 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center"><i class="fa-solid fa-eye"></i></div></button>
+            <!-- DIARY BUTTON -->
+            <button onclick="FAB.openDiary()" class="flex items-center gap-3 bg-white text-slate-600 py-2.5 px-5 rounded-full shadow-xl shadow-slate-200 border border-slate-50 animate-slide-up hover:scale-105 transition" style="animation-delay: 0.1s"><span class="font-bold text-sm">Diary Entry</span><div class="w-8 h-8 rounded-full bg-amber-100 text-amber-600 flex items-center justify-center"><i class="fa-solid fa-book-open"></i></div></button>
         </div>
         <button onclick="FAB.toggle()" id="fabBtn" class="pointer-events-auto w-14 h-14 bg-slate-900 text-white rounded-full shadow-2xl shadow-slate-400 flex items-center justify-center text-2xl fab-menu hover:bg-slate-800 transition">
             <i id="fabIcon" class="fa-solid fa-plus"></i>
@@ -95,7 +94,7 @@
             </div>
             <div class="space-y-4">
                 <select id="loginRole" class="w-full bg-slate-50 border border-slate-200 p-3 rounded-xl font-bold text-slate-700"><option value="Educator">Educator</option><option value="Guardian">Guardian</option></select>
-                <input id="loginId" type="text" placeholder="Enter Username" class="w-full bg-slate-50 border border-slate-200 p-3 rounded-xl font-mono text-sm">
+                <input id="loginId" type="text" placeholder="Contact ID..." class="w-full bg-slate-50 border border-slate-200 p-3 rounded-xl font-mono text-sm">
                 <button onclick="App.login()" class="w-full bg-emerald-600 text-white py-4 rounded-xl font-bold shadow-lg shadow-emerald-200">Access Dashboard</button>
             </div>
         </div>
@@ -142,7 +141,7 @@
         </div>
     </div>
 
-    <!-- Review Drawer (Bottom Sheet) -->
+    <!-- Review Drawer -->
     <div id="reviewModal" class="modal fixed inset-0 z-[70] bg-slate-900/50 hidden flex items-end justify-center backdrop-blur-sm">
         <div class="bg-white w-full max-w-md rounded-t-3xl p-6 shadow-2xl animate-slide-up h-[85vh] flex flex-col">
             <div class="w-full flex justify-center mb-4" onclick="Modals.close()"><div class="w-12 h-1.5 bg-slate-200 rounded-full cursor-pointer"></div></div>
@@ -155,12 +154,10 @@
                 <div id="reviewObjectives" class="space-y-6"></div>
                 <div><label class="text-xs font-bold text-slate-400 uppercase ml-1">Notes</label><textarea id="reviewNote" class="w-full bg-slate-50 border p-4 rounded-xl text-sm h-24 resize-none focus:bg-white transition" placeholder="How did it go?"></textarea></div>
                 
-                <!-- NEW: Review Image Input -->
                 <div class="bg-slate-50 p-4 rounded-xl border border-slate-100">
                     <label class="block text-xs font-bold text-slate-400 uppercase mb-2">Evidence (Optional)</label>
                     <input type="file" id="reviewImageInput" accept="image/*" class="w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"/>
                 </div>
-
             </div>
             <div class="pt-4 border-t border-slate-100">
                 <button onclick="ReviewModal.submit()" class="submit-btn w-full bg-emerald-600 text-white py-4 rounded-xl font-bold shadow-lg shadow-emerald-200">Submit Report</button>
@@ -168,12 +165,10 @@
         </div>
     </div>
 
-    <!-- LOG DRAWER (3-Path Wizard) -->
+    <!-- LOG DRAWER -->
     <div id="logModal" class="modal fixed inset-0 z-[70] bg-slate-900/50 hidden flex items-end justify-center backdrop-blur-sm">
         <div class="bg-white w-full max-w-md rounded-t-3xl p-6 shadow-2xl animate-slide-up h-[85vh] flex flex-col">
-            
             <div class="w-full flex justify-center mb-2" onclick="Modals.close()"><div class="w-12 h-1.5 bg-slate-200 rounded-full cursor-pointer"></div></div>
-
             <div class="flex justify-between items-center mb-6 border-b border-slate-50 pb-4">
                 <div class="flex items-center gap-3">
                     <button id="logBackBtn" onclick="LogWizard.back()" class="hidden w-8 h-8 rounded-full bg-slate-100 text-slate-500 flex items-center justify-center hover:bg-slate-200 transition"><i class="fa-solid fa-arrow-left"></i></button>
@@ -181,55 +176,33 @@
                 </div>
                 <button onclick="Modals.close()" class="w-8 h-8 flex items-center justify-center bg-slate-100 rounded-full text-slate-400 hover:text-slate-600"><i class="fa-solid fa-times"></i></button>
             </div>
-
             <div class="flex-1 overflow-y-auto">
-                
-                <!-- STEP 1: CHOICE -->
                 <div id="logStep1" class="space-y-3">
                     <button onclick="LogWizard.goGeneral()" class="w-full bg-slate-50 border-2 border-slate-100 p-5 rounded-2xl flex items-center gap-4 hover:border-emerald-500 hover:bg-emerald-50 transition group text-left">
                         <div class="w-10 h-10 rounded-full bg-white shadow-sm flex items-center justify-center text-lg text-slate-400 group-hover:text-emerald-500 border border-slate-100"><i class="fa-solid fa-comment-dots"></i></div>
                         <div><h3 class="font-bold text-lg text-slate-700 group-hover:text-emerald-800">General</h3><p class="text-xs text-slate-400 group-hover:text-emerald-600">Daily update or mood.</p></div>
                     </button>
-
                     <button onclick="LogWizard.goFocused()" class="w-full bg-slate-50 border-2 border-slate-100 p-5 rounded-2xl flex items-center gap-4 hover:border-indigo-500 hover:bg-indigo-50 transition group text-left">
                         <div class="w-10 h-10 rounded-full bg-white shadow-sm flex items-center justify-center text-lg text-slate-400 group-hover:text-indigo-500 border border-slate-100"><i class="fa-solid fa-bullseye"></i></div>
                         <div><h3 class="font-bold text-lg text-slate-700 group-hover:text-indigo-800">Focused</h3><p class="text-xs text-slate-400 group-hover:text-indigo-600">Link to Areas of Development.</p></div>
                     </button>
-
                     <button onclick="LogWizard.goProgress()" class="w-full bg-slate-50 border-2 border-slate-100 p-5 rounded-2xl flex items-center gap-4 hover:border-blue-500 hover:bg-blue-50 transition group text-left">
                         <div class="w-10 h-10 rounded-full bg-white shadow-sm flex items-center justify-center text-lg text-slate-400 group-hover:text-blue-500 border border-slate-100"><i class="fa-solid fa-chart-simple"></i></div>
                         <div><h3 class="font-bold text-lg text-slate-700 group-hover:text-blue-800">Progress</h3><p class="text-xs text-slate-400 group-hover:text-blue-600">Detailed skills assessment.</p></div>
                     </button>
                 </div>
-
-                <!-- STEP: GENERAL INPUT -->
                 <div id="logStepGeneral" class="hidden flex flex-col h-full">
                     <div class="mb-4"><span class="inline-block px-3 py-1 bg-slate-100 text-slate-600 rounded-full text-xs font-bold uppercase tracking-wide border border-slate-200">General</span></div>
-                    
-                    <!-- NEW: General Image Input -->
-                    <div class="mb-4">
-                        <input type="file" id="logImageGeneral" accept="image/*" class="w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-slate-100 file:text-slate-700 hover:file:bg-slate-200 transition"/>
-                    </div>
-
+                    <div class="mb-4"><input type="file" id="logImageGeneral" accept="image/*" class="w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-slate-100 file:text-slate-700 hover:file:bg-slate-200 transition"/></div>
                     <textarea id="logNoteGeneral" class="w-full flex-1 bg-slate-50 border-2 border-slate-100 p-4 rounded-2xl text-base resize-none focus:bg-white focus:border-emerald-500 transition" placeholder="Write Observation..."></textarea>
                     <div class="mt-4 pb-4"><button onclick="ObsGeneral.submit()" id="btnSubmitGeneral" class="w-full bg-emerald-600 text-white py-4 rounded-xl font-bold shadow-lg transition">Save Observation</button></div>
                 </div>
-
-                <!-- STEP: FOCUSED INPUT (Tags) -->
                 <div id="logStepFocused" class="hidden flex flex-col h-full">
                     <div class="mb-4 space-y-4">
-                        <div>
-                            <label class="text-xs font-bold text-slate-400 uppercase ml-1">Add Area</label>
-                            <select id="logDomainSelect" onchange="ObsFocused.addDomain(this)" class="w-full bg-slate-50 border border-slate-200 p-3 rounded-xl text-sm font-bold text-slate-700 mt-1 focus:border-indigo-500"></select>
-                        </div>
+                        <div><label class="text-xs font-bold text-slate-400 uppercase ml-1">Add Area</label><select id="logDomainSelect" onchange="ObsFocused.addDomain(this)" class="w-full bg-slate-50 border border-slate-200 p-3 rounded-xl text-sm font-bold text-slate-700 mt-1 focus:border-indigo-500"></select></div>
                         <div id="activeTags" class="flex flex-wrap gap-2 min-h-[40px]"></div>
                     </div>
-                    
-                    <!-- NEW: Focused Image Input -->
-                    <div class="mb-4">
-                        <input type="file" id="logImageFocused" accept="image/*" class="w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-slate-100 file:text-slate-700 hover:file:bg-slate-200 transition"/>
-                    </div>
-
+                    <div class="mb-4"><input type="file" id="logImageFocused" accept="image/*" class="w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-slate-100 file:text-slate-700 hover:file:bg-slate-200 transition"/></div>
                     <div id="focusedInputArea" class="hidden flex-1 flex flex-col">
                         <label class="text-xs font-bold text-slate-400 uppercase ml-1 mb-1">Observation</label>
                         <textarea id="logNoteFocused" class="w-full flex-1 bg-slate-50 border-2 border-slate-100 p-4 rounded-2xl text-base resize-none focus:bg-white focus:border-indigo-500 transition" placeholder="Details..."></textarea>
@@ -237,18 +210,10 @@
                     </div>
                     <div id="focusedHint" class="flex-1 flex items-center justify-center text-slate-400 text-sm italic">Select an Area above to start.</div>
                 </div>
-
-                <!-- STEP: PROGRESS SELECTOR -->
                 <div id="logStepProgress" class="hidden h-full flex flex-col relative">
-                    <div class="flex-1 overflow-y-auto pb-24">
-                        <div id="progressAccordion" class="space-y-2"></div>
-                    </div>
-                    <div id="progressFooter" class="hidden absolute bottom-0 left-0 w-full bg-white pt-4 pb-2 border-t border-slate-100">
-                        <button onclick="LogWizard.goToProgressNote()" class="w-full bg-blue-600 text-white py-4 rounded-xl font-bold shadow-lg">Add Progress</button>
-                    </div>
+                    <div class="flex-1 overflow-y-auto pb-24"><div id="progressAccordion" class="space-y-2"></div></div>
+                    <div id="progressFooter" class="hidden absolute bottom-0 left-0 w-full bg-white pt-4 pb-2 border-t border-slate-100"><button onclick="LogWizard.goToProgressNote()" class="w-full bg-blue-600 text-white py-4 rounded-xl font-bold shadow-lg">Add Progress</button></div>
                 </div>
-
-                <!-- STEP: PROGRESS NOTE -->
                 <div id="logStepProgressNote" class="hidden flex flex-col h-full">
                     <div class="mb-4">
                         <div id="progressSummaryContainer" class="bg-blue-50 border border-blue-100 rounded-xl p-3 mb-4 max-h-40 overflow-y-auto custom-scrollbar"></div>
@@ -257,16 +222,89 @@
                             <button onclick="ObsProgress.submit()" id="btnSkipNote" class="text-xs font-bold text-slate-400 hover:text-slate-600">Skip Note</button>
                         </div>
                     </div>
-                    
-                    <!-- NEW: Progress Image Input -->
-                    <div class="mb-4">
-                        <input type="file" id="logImageProgress" accept="image/*" class="w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-slate-100 file:text-slate-700 hover:file:bg-slate-200 transition"/>
-                    </div>
-
+                    <div class="mb-4"><input type="file" id="logImageProgress" accept="image/*" class="w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-slate-100 file:text-slate-700 hover:file:bg-slate-200 transition"/></div>
                     <textarea id="logNoteProgress" class="w-full flex-1 bg-slate-50 border-2 border-slate-100 p-4 rounded-2xl text-base resize-none focus:bg-white focus:border-blue-500 transition" placeholder="Add optional observation..."></textarea>
                     <div class="mt-4 pb-4"><button onclick="ObsProgress.submit()" id="btnSubmitProgress" class="w-full bg-blue-600 text-white py-4 rounded-xl font-bold shadow-lg transition">Add Observation</button></div>
                 </div>
+            </div>
+        </div>
+    </div>
 
+    <!-- NEW: DIARY DRAWER (Added) -->
+    <div id="diaryModal" class="modal fixed inset-0 z-[70] bg-slate-900/50 hidden flex items-end justify-center backdrop-blur-sm">
+        <div class="bg-white w-full max-w-md rounded-t-3xl p-6 shadow-2xl animate-slide-up h-[85vh] flex flex-col">
+            <div class="w-full flex justify-center mb-2" onclick="Modals.close()"><div class="w-12 h-1.5 bg-slate-200 rounded-full cursor-pointer"></div></div>
+            <div class="flex justify-between items-center mb-6 border-b border-slate-50 pb-4">
+                <div class="flex items-center gap-3">
+                    <button id="diaryBackBtn" onclick="DiaryWizard.back()" class="hidden w-8 h-8 rounded-full bg-slate-100 text-slate-500 flex items-center justify-center hover:bg-slate-200 transition"><i class="fa-solid fa-arrow-left"></i></button>
+                    <h2 id="diaryTitle" class="text-xl font-bold text-slate-800">New Diary Entry</h2>
+                </div>
+                <button onclick="Modals.close()" class="w-8 h-8 flex items-center justify-center bg-slate-100 rounded-full text-slate-400 hover:text-slate-600"><i class="fa-solid fa-times"></i></button>
+            </div>
+            <div class="flex-1 overflow-y-auto">
+                <div id="diaryStep1" class="space-y-3">
+                    <button onclick="DiaryWizard.goFood()" class="w-full bg-slate-50 border-2 border-slate-100 p-5 rounded-2xl flex items-center gap-4 hover:border-orange-500 hover:bg-orange-50 transition group text-left">
+                        <div class="w-10 h-10 rounded-full bg-white shadow-sm flex items-center justify-center text-lg text-slate-400 group-hover:text-orange-500 border border-slate-100"><i class="fa-solid fa-utensils"></i></div>
+                        <div><h3 class="font-bold text-lg text-slate-700 group-hover:text-orange-800">Food</h3><p class="text-xs text-slate-400 group-hover:text-orange-600">Meals, snacks, or bottles.</p></div>
+                    </button>
+                    <button onclick="DiaryWizard.goSleep()" class="w-full bg-slate-50 border-2 border-slate-100 p-5 rounded-2xl flex items-center gap-4 hover:border-indigo-500 hover:bg-indigo-50 transition group text-left">
+                        <div class="w-10 h-10 rounded-full bg-white shadow-sm flex items-center justify-center text-lg text-slate-400 group-hover:text-indigo-500 border border-slate-100"><i class="fa-solid fa-moon"></i></div>
+                        <div><h3 class="font-bold text-lg text-slate-700 group-hover:text-indigo-800">Sleep</h3><p class="text-xs text-slate-400 group-hover:text-indigo-600">Nap times and duration.</p></div>
+                    </button>
+                </div>
+                <div id="diaryStepFood" class="hidden flex flex-col h-full space-y-4">
+                    <div>
+                        <label class="text-xs font-bold text-slate-400 uppercase">Entry Type</label>
+                        <select id="foodType" onchange="FoodLog.onTypeChange()" class="w-full bg-slate-50 border border-slate-200 p-3 rounded-xl text-sm font-bold text-slate-700 mt-1">
+                            <option value="">Select...</option>
+                            <option value="Meal">Meal</option>
+                            <option value="Snack">Snack</option>
+                            <option value="Bottle">Bottle</option>
+                        </select>
+                    </div>
+                    <div id="foodInputArea" class="hidden space-y-4">
+                        <div id="foodDetailContainer">
+                            <label class="text-xs font-bold text-slate-400 uppercase">What did they have?</label>
+                            <textarea id="foodDetails" class="w-full bg-slate-50 border border-slate-200 p-3 rounded-xl text-sm h-24 resize-none" placeholder="e.g. Pasta and broccoli"></textarea>
+                        </div>
+                        <div id="foodQtyContainer" class="hidden">
+                            <label class="text-xs font-bold text-slate-400 uppercase">Quantity</label>
+                            <select id="foodQuantity" class="w-full bg-slate-50 border border-slate-200 p-3 rounded-xl text-sm font-bold text-slate-700 mt-1">
+                                <option value="">Select Amount</option>
+                                <option value="30ml / 1oz">30ml / 1oz</option>
+                                <option value="60ml / 2oz">60ml / 2oz</option>
+                                <option value="90ml / 3oz">90ml / 3oz</option>
+                                <option value="120ml / 4oz">120ml / 4oz</option>
+                                <option value="150ml / 5oz">150ml / 5oz</option>
+                                <option value="180ml / 6oz">180ml / 6oz</option>
+                                <option value="210ml / 7oz">210ml / 7oz</option>
+                                <option value="240ml / 8oz">240ml / 8oz</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="text-xs font-bold text-slate-400 uppercase">Time</label>
+                            <input type="time" id="foodTime" class="w-full bg-slate-50 border border-slate-200 p-3 rounded-xl text-sm font-bold text-slate-700 mt-1">
+                        </div>
+                        <button onclick="FoodLog.submit()" id="btnSubmitFood" class="w-full bg-orange-500 text-white py-4 rounded-xl font-bold shadow-lg shadow-orange-200">Log Food</button>
+                    </div>
+                </div>
+                <div id="diaryStepSleep" class="hidden flex flex-col h-full space-y-4">
+                    <div class="grid grid-cols-2 gap-3">
+                        <div>
+                            <label class="text-xs font-bold text-slate-400 uppercase">Went to Sleep</label>
+                            <select id="sleepStart" onchange="SleepLog.calcDuration()" class="w-full bg-slate-50 border border-slate-200 p-3 rounded-xl text-sm font-bold text-slate-700 mt-1"></select>
+                        </div>
+                        <div>
+                            <label class="text-xs font-bold text-slate-400 uppercase">Woke Up</label>
+                            <select id="sleepEnd" onchange="SleepLog.calcDuration()" class="w-full bg-slate-50 border border-slate-200 p-3 rounded-xl text-sm font-bold text-slate-700 mt-1"></select>
+                        </div>
+                    </div>
+                    <div class="bg-indigo-50 border border-indigo-100 p-4 rounded-xl text-center">
+                        <p class="text-xs font-bold text-indigo-400 uppercase">Total Sleep</p>
+                        <p id="sleepDuration" class="text-2xl font-bold text-indigo-800">--</p>
+                    </div>
+                    <button onclick="SleepLog.submit()" id="btnSubmitSleep" class="w-full bg-indigo-600 text-white py-4 rounded-xl font-bold shadow-lg shadow-indigo-200">Log Sleep</button>
+                </div>
             </div>
         </div>
     </div>
@@ -287,10 +325,16 @@
     <script src="js/components/modals/base.js"></script>
     <script src="js/components/modals/plan.js"></script>
     <script src="js/components/modals/review.js"></script>
+    
     <script src="js/components/modals/observation/general.js"></script>
     <script src="js/components/modals/observation/focused.js"></script>
     <script src="js/components/modals/observation/progress.js"></script>
     <script src="js/components/modals/observation/wizard.js"></script>
+
+    <!-- NEW: DIARY MANAGERS -->
+    <script src="js/components/modals/diary/food.js"></script>
+    <script src="js/components/modals/diary/sleep.js"></script>
+    <script src="js/components/modals/diary/wizard.js"></script>
 
     <!-- FEED TILES -->
     <script src="js/views/feed/activity_tile.js"></script>
@@ -298,6 +342,10 @@
     <script src="js/views/feed/observation_tile.js"></script>
     <script src="js/views/feed/progress_tile.js"></script>
     <script src="js/views/feed/insight_tile.js"></script>
+    
+    <!-- NEW: DIARY TILE -->
+    <script src="js/views/feed/diary_tile.js"></script>
+    
     <script src="js/views/feed/base.js"></script>
 
     <!-- OTHER VIEWS -->
