@@ -210,7 +210,7 @@ const TXT = {
         
         // js/views/progress.js
         PROGRESS_DASHBOARD: {
-            HEADER_CHART: "Mastery Balance",
+            HEADER_CHART: "Progress Dashboard",
             BADGE_LIVE: "Live"
         }
     }
