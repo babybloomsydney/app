@@ -21,6 +21,11 @@ const Modals = {
             if (name === 'log' && typeof LogWizard !== 'undefined') {
                 LogWizard.init();
             }
+            // NEW: Initialize Diary Wizard (Critical for resetting state)
+            if (name === 'diary' && typeof DiaryWizard !== 'undefined') {
+                DiaryWizard.init();
+            }
+            
         } else {
             console.error(`Modal '${name}Modal' not found in HTML.`);
         }
@@ -29,5 +34,9 @@ const Modals = {
     // Generic Close
     close: () => {
         document.querySelectorAll('.modal').forEach(m => m.classList.add('hidden'));
-    }
+    },
+
+    // Safety stubs
+    initLog: () => { if (typeof LogWizard !== 'undefined') LogWizard.init(); },
+    renderAccordion: () => { return ""; }
 };
