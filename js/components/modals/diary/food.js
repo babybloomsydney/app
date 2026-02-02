@@ -1,3 +1,6 @@
+/**
+ * DIARY: FOOD LOG
+ */
 const FoodLog = {
     init: () => {
         const now = new Date();
@@ -64,7 +67,7 @@ const FoodLog = {
         
         setTimeout(() => {
             if(btn) { btn.innerText = oldText; btn.disabled = false; }
-            DiaryWizard.init(); // Reset wizard
+            DiaryWizard.init(); 
             Modals.close();
             if (typeof FeedView !== 'undefined') FeedView.render();
         }, 800);
