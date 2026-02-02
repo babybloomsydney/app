@@ -1,12 +1,14 @@
 /**
  * DIARY: SLEEP LOG
  * Handles Nap tracking and duration calculation.
+ * Fixes: Ensures time dropdowns populate correctly.
  */
 const SleepLog = {
     init: () => {
-        // Force population of dropdowns
+        // Always re-populate to ensure options exist
         SleepLog.renderTimeOptions('sleepStart');
         SleepLog.renderTimeOptions('sleepEnd');
+        
         const dur = document.getElementById('sleepDuration');
         if(dur) dur.innerText = "--";
     },
@@ -14,30 +16,31 @@ const SleepLog = {
     reset: () => {
         const start = document.getElementById('sleepStart');
         const end = document.getElementById('sleepEnd');
+        const dur = document.getElementById('sleepDuration');
+        
         if(start) start.value = "";
         if(end) end.value = "";
-        const dur = document.getElementById('sleepDuration');
         if(dur) dur.innerText = "--";
     },
 
     renderTimeOptions: (id) => {
         const el = document.getElementById(id);
-        if (!el) return;
-        
-        // Only populate if empty (length <= 1 means just the default "Select" option)
-        if (el.options.length > 1) return; 
+        if (!el) return console.error(`SleepLog Error: Dropdown '${id}' not found.`);
 
-        // Build string first for performance
-        let html = '<option value="">Select Time</option>';
+        // Build options string
+        let htmlString = '<option value="">Select Time</option>';
+        
         for (let h = 0; h < 24; h++) {
             for (let m = 0; m < 60; m += 5) { // 5 minute intervals
                 const hh = h.toString().padStart(2, '0');
                 const mm = m.toString().padStart(2, '0');
                 const time = `${hh}:${mm}`;
-                html += `<option value="${time}">${time}</option>`;
+                htmlString += `<option value="${time}">${time}</option>`;
             }
         }
-        el.innerHTML = html;
+        
+        // Inject into DOM
+        el.innerHTML = htmlString;
     },
 
     calcDuration: () => {
@@ -58,24 +61,27 @@ const SleepLog = {
             const hours = Math.floor(diffMins / 60);
             const mins = diffMins % 60;
             
-            display.innerText = `${hours}h ${mins}m`;
+            if(display) display.innerText = `${hours}h ${mins}m`;
         } else {
-            display.innerText = "--";
+            if(display) display.innerText = "--";
         }
     },
 
     submit: async () => {
         const start = document.getElementById('sleepStart').value;
         const end = document.getElementById('sleepEnd').value;
-        const duration = document.getElementById('sleepDuration').innerText;
+        const display = document.getElementById('sleepDuration');
+        const duration = display ? display.innerText : "";
 
         if (!start || !end) return alert("Please select start and end times.");
 
         const btn = document.getElementById('btnSubmitSleep');
-        const oldText = btn.innerText;
+        const oldText = btn ? btn.innerText : "Save";
         
-        btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin mr-2"></i> Saving...`;
-        btn.disabled = true;
+        if(btn) {
+            btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin mr-2"></i> Saving...`;
+            btn.disabled = true;
+        }
 
         const entryData = {
             subtype: "Nap",
@@ -84,11 +90,14 @@ const SleepLog = {
             duration: duration
         };
 
+        // Call API
         await API.logDiary(STATE.child.childId, "Sleep", entryData);
         
         setTimeout(() => {
-            btn.innerText = oldText;
-            btn.disabled = false;
+            if(btn) {
+                btn.innerText = oldText;
+                btn.disabled = false;
+            }
             
             // Critical: Reset Wizard to main menu so it doesn't stick
             if(typeof DiaryWizard !== 'undefined') DiaryWizard.init();
