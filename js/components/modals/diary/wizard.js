@@ -1,7 +1,7 @@
 /**
  * DIARY WIZARD MANAGER
  * Handles navigation between Food and Sleep modes.
- * Mirrors logic from Observation Wizard.
+ * Fixes: Ensures navigation resets properly on close/back.
  */
 const DiaryWizard = {
     state: { mode: null },
@@ -9,21 +9,31 @@ const DiaryWizard = {
     init: () => {
         DiaryWizard.state.mode = null;
         
-        // 1. Reset Inputs
-        if(typeof FoodLog !== 'undefined') FoodLog.reset();
-        if(typeof SleepLog !== 'undefined') SleepLog.reset();
+        // 1. Reset Sub-component Inputs (Safety Checked)
+        if(typeof FoodLog !== 'undefined' && FoodLog.reset) FoodLog.reset();
+        if(typeof SleepLog !== 'undefined' && SleepLog.reset) SleepLog.reset();
 
-        // 2. Show Start Screen
-        DiaryWizard.showStep('diaryStep1');
+        // 2. FORCE NAVIGATION RESET
+        // Explicitly hide sub-steps and show the main menu
+        const steps = ['diaryStepFood', 'diaryStepSleep'];
+        steps.forEach(id => {
+            const el = document.getElementById(id);
+            if (el) el.classList.add('hidden');
+        });
         
-        // 3. Reset Header (Hide Back Button, Set Title)
+        const startScreen = document.getElementById('diaryStep1');
+        if (startScreen) startScreen.classList.remove('hidden');
+        
+        // 3. Reset Header (Hide Back Button)
         const backBtn = document.getElementById('diaryBackBtn');
         const title = document.getElementById('diaryTitle');
+        
         if(backBtn) backBtn.classList.add('hidden');
-        if(title) title.innerText = TXT.COMPONENTS.MODALS.DIARY.HEADER;
+        if(title && typeof TXT !== 'undefined') title.innerText = TXT.COMPONENTS.MODALS.DIARY.HEADER;
     },
 
-    // Navigation Actions
+    // --- NAVIGATION ACTIONS ---
+    
     goFood: () => { 
         DiaryWizard.state.mode = 'Food'; 
         DiaryWizard.showStep('diaryStepFood'); 
@@ -39,17 +49,21 @@ const DiaryWizard = {
     },
 
     back: () => {
-        // Since Diary is only 1 level deep, Back always goes to Init (Step 1)
+        // Always return to the start screen
         DiaryWizard.init(); 
     },
 
+    // --- HELPERS ---
+
     showStep: (activeId) => {
+        // Hide all steps first
         const steps = ['diaryStep1', 'diaryStepFood', 'diaryStepSleep'];
         steps.forEach(id => {
             const el = document.getElementById(id);
             if(el) el.classList.add('hidden');
         });
         
+        // Show the active one
         const activeEl = document.getElementById(activeId);
         if(activeEl) activeEl.classList.remove('hidden');
     },
@@ -58,7 +72,7 @@ const DiaryWizard = {
         const backBtn = document.getElementById('diaryBackBtn');
         const title = document.getElementById('diaryTitle');
         
-        // Show Back Button when navigating deeper
+        // Show Back Button since we are deep in a menu
         if(backBtn) backBtn.classList.remove('hidden');
         if(title) title.innerText = txt;
     }
