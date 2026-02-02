@@ -1,16 +1,12 @@
 /**
  * DIARY: FOOD
  * Handles food entry submission.
- * Emulates observation sub-components (e.g., ObsFocused) for init/reset/submit.
- * Assumes this file exists; if not, create it with this content.
+ * Emulates ObsGeneral for submit (with spinner) and adds reset/init.
  */
 const FoodLog = {
     init: () => {
-        // Emulate observation init: Reset fields
-        FoodLog.reset();
-        
-        // Show/hide based on type (existing logic)
-        FoodLog.onTypeChange();
+        // Emulate ObsGeneral: Minimal init
+        FoodLog.onTypeChange(); // Ensure visibility
     },
     
     onTypeChange: () => {
@@ -27,7 +23,7 @@ const FoodLog = {
     },
     
     submit: async () => {
-        // Emulate observation submit
+        // Emulate ObsGeneral.submit exactly
         const type = document.getElementById('foodType').value;
         const details = document.getElementById('foodDetails').value;
         const quantity = document.getElementById('foodQuantity')?.value || '';
@@ -37,34 +33,44 @@ const FoodLog = {
         
         const btn = document.getElementById('btnSubmitFood');
         const oldText = btn.innerText;
-        btn.innerHTML = `<i class="fa-solid fa-check mr-2"></i> Added!`;
-        btn.classList.add('btn-success');
+        
+        // UI Feedback (emulating spinner)
+        btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin mr-2"></i> Uploading...`;
         btn.disabled = true;
         
-        // API call (as per user: assume works)
-        await API.logDiaryEntry(STATE.child.childId, "Food", { type, details, quantity, time });
+        // Image upload (emulating; add if needed)
+        let imageUrl = null;
+        // const fileInput = document.getElementById('diaryImageFood');
+        // if (fileInput && fileInput.files.length > 0) {
+        //     imageUrl = await Cloudinary.uploadImage(fileInput, STATE.child.childId);
+        // }
+        
+        // API call (unchanged)
+        await API.logDiaryEntry(STATE.child.childId, "Food", { type, details, quantity, time }); // Add imageUrl if implemented
+        
+        btn.innerHTML = `<i class="fa-solid fa-check mr-2"></i> ${TXT?.COMPONENTS?.MODALS?.OBSERVATION?.SUCCESS_MSG || 'Added!'}`;
+        btn.classList.add('btn-success');
         
         setTimeout(() => {
             btn.innerText = oldText;
             btn.classList.remove('btn-success');
             btn.disabled = false;
+            
+            // Clear input
+            // if (fileInput) fileInput.value = "";
+            
             Modals.close();
             if (typeof FeedView !== 'undefined') FeedView.render();
         }, 800);
     },
     
     reset: () => {
-        // Emulate observation reset
-        const typeSelect = document.getElementById('foodType');
-        const detailsTextarea = document.getElementById('foodDetails');
-        const qtySelect = document.getElementById('foodQuantity');
-        const timeInput = document.getElementById('foodTime');
-        const inputArea = document.getElementById('foodInputArea');
-        
-        if (typeSelect) typeSelect.value = "";
-        if (detailsTextarea) detailsTextarea.value = "";
-        if (qtySelect) qtySelect.value = "";
-        if (timeInput) timeInput.value = "";
-        if (inputArea) inputArea.classList.add('hidden');
+        // Emulate implicit reset
+        document.getElementById('foodType').value = "";
+        document.getElementById('foodDetails').value = "";
+        const qty = document.getElementById('foodQuantity');
+        if (qty) qty.value = "";
+        document.getElementById('foodTime').value = "";
+        document.getElementById('foodInputArea').classList.add('hidden');
     }
 };
