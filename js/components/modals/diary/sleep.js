@@ -4,8 +4,10 @@
  */
 const SleepLog = {
     init: () => {
+        // Force population
         SleepLog.renderTimeOptions('sleepStart');
         SleepLog.renderTimeOptions('sleepEnd');
+        
         const dur = document.getElementById('sleepDuration');
         if(dur) dur.innerText = "--";
     },
@@ -23,19 +25,28 @@ const SleepLog = {
         const el = document.getElementById(id);
         if (!el) return console.error(`SleepLog: Dropdown '${id}' missing.`);
         
-        // Prevent duplicate rendering
-        if (el.options.length > 1) return; 
+        // Clear existing
+        el.innerHTML = "";
+        
+        // Add Default
+        const defaultOpt = document.createElement('option');
+        defaultOpt.value = "";
+        defaultOpt.text = "Select Time";
+        el.appendChild(defaultOpt);
 
-        let html = '<option value="">Select Time</option>';
+        // Populate 24h * 5min
         for (let h = 0; h < 24; h++) {
             for (let m = 0; m < 60; m += 5) { 
                 const hh = h.toString().padStart(2, '0');
                 const mm = m.toString().padStart(2, '0');
                 const time = `${hh}:${mm}`;
-                html += `<option value="${time}">${time}</option>`;
+                
+                const opt = document.createElement('option');
+                opt.value = time;
+                opt.text = time;
+                el.appendChild(opt);
             }
         }
-        el.innerHTML = html;
     },
 
     calcDuration: () => {
@@ -68,7 +79,11 @@ const SleepLog = {
 
         const btn = document.getElementById('btnSubmitSleep');
         const oldText = btn ? btn.innerText : "Save";
-        if(btn) { btn.innerText = "Saving..."; btn.disabled = true; }
+        
+        if(btn) {
+            btn.innerText = "Saving...";
+            btn.disabled = true;
+        }
 
         const entryData = { subtype: "Nap", start: start, end: end, duration: duration };
 
