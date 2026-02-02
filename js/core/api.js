@@ -85,15 +85,15 @@ const API = {
             imageUrl: imageUrl,
             authorId: STATE.user.id
         });
-    },
+    }, // <--- THIS COMMA IS CRITICAL
    
-    // NEW: Diary (corrected name to match submit calls; added JSON.stringify for safety)
+    // NEW: Diary
     logDiaryEntry: async (childId, type, entryData) => {
         return await sendRequest({
             action: "logDiaryEntry",
             childId,
             type,
-            entryData: JSON.stringify(entryData),  // Stringify to ensure safe transmission
+            entryData,  // Send as object (not stringified) to avoid explosion; backend should JSON.stringify for cell
             authorId: STATE.user.id
         });
     }
