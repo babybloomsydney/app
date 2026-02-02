@@ -1,7 +1,7 @@
 /**
  * DIARY WIZARD MANAGER
  * Handles navigation between Food and Sleep modes.
- * Dependency: js/core/labels.js (TXT)
+ * Mirrors logic from Observation Wizard.
  */
 const DiaryWizard = {
     state: { mode: null },
@@ -9,16 +9,14 @@ const DiaryWizard = {
     init: () => {
         DiaryWizard.state.mode = null;
         
-        // 1. Reset Inputs for sub-components
+        // 1. Reset Inputs
         if(typeof FoodLog !== 'undefined') FoodLog.reset();
         if(typeof SleepLog !== 'undefined') SleepLog.reset();
 
-        // 2. FORCE Show Start Screen (Hide others)
-        const steps = ['diaryStepFood', 'diaryStepSleep'];
-        steps.forEach(id => document.getElementById(id).classList.add('hidden'));
-        document.getElementById('diaryStep1').classList.remove('hidden');
+        // 2. Show Start Screen
+        DiaryWizard.showStep('diaryStep1');
         
-        // 3. Reset Header
+        // 3. Reset Header (Hide Back Button, Set Title)
         const backBtn = document.getElementById('diaryBackBtn');
         const title = document.getElementById('diaryTitle');
         if(backBtn) backBtn.classList.add('hidden');
@@ -41,7 +39,7 @@ const DiaryWizard = {
     },
 
     back: () => {
-        // Just re-run init to go back to square one
+        // Since Diary is only 1 level deep, Back always goes to Init (Step 1)
         DiaryWizard.init(); 
     },
 
@@ -59,6 +57,8 @@ const DiaryWizard = {
     updateHeader: (txt) => {
         const backBtn = document.getElementById('diaryBackBtn');
         const title = document.getElementById('diaryTitle');
+        
+        // Show Back Button when navigating deeper
         if(backBtn) backBtn.classList.remove('hidden');
         if(title) title.innerText = txt;
     }
