@@ -17,7 +17,6 @@ async function sendRequest(payload) {
         return { status: "error", message: "Connection failed. Please check internet." };
     }
 }
-
 const API = {
     // --- READERS ---
     fetchChildren: async () => {
@@ -43,7 +42,7 @@ const API = {
     fetchHistory: async (childId) => {
         return await sendRequest({ action: "getChildHistory", childId: childId });
     },
-    
+   
     // --- WRITERS ---
     generatePlan: async (childId, objectives) => {
         return await sendRequest({
@@ -61,8 +60,8 @@ const API = {
             ratings,
             feedback: note,
             authorId: STATE.user.id,
-            imageUrl: imageUrl, 
-            refs: [activityId] 
+            imageUrl: imageUrl,
+            refs: [activityId]
         });
     },
     logObservation: async (childId, domain, milestoneId, score, note, imageUrl) => {
@@ -73,7 +72,7 @@ const API = {
             milestoneId,
             score,
             note,
-            imageUrl: imageUrl, 
+            imageUrl: imageUrl,
             authorId: STATE.user.id
         });
     },
@@ -83,18 +82,18 @@ const API = {
             childId,
             updates,
             note: note,
-            imageUrl: imageUrl, 
+            imageUrl: imageUrl,
             authorId: STATE.user.id
         });
-    }, // <--- THIS COMMA IS CRITICAL
-    
-    // NEW: Diary
-    logDiary: async (childId, type, entryData) => {
+    },
+   
+    // NEW: Diary (corrected name to match submit calls; added JSON.stringify for safety)
+    logDiaryEntry: async (childId, type, entryData) => {
         return await sendRequest({
             action: "logDiaryEntry",
-            childId, 
-            type, 
-            entryData, 
+            childId,
+            type,
+            entryData: JSON.stringify(entryData),  // Stringify to ensure safe transmission
             authorId: STATE.user.id
         });
     }
