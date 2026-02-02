@@ -4,20 +4,27 @@
  */
 const SleepLog = {
     init: () => {
+        // Force population of dropdowns every time to be safe
         SleepLog.renderTimeOptions('sleepStart');
         SleepLog.renderTimeOptions('sleepEnd');
         document.getElementById('sleepDuration').innerText = "--";
     },
 
     reset: () => {
-        document.getElementById('sleepStart').value = "";
-        document.getElementById('sleepEnd').value = "";
-        document.getElementById('sleepDuration').innerText = "--";
+        const start = document.getElementById('sleepStart');
+        const end = document.getElementById('sleepEnd');
+        if(start) start.value = "";
+        if(end) end.value = "";
+        const dur = document.getElementById('sleepDuration');
+        if(dur) dur.innerText = "--";
     },
 
     renderTimeOptions: (id) => {
         const el = document.getElementById(id);
-        if (el.options.length > 1) return; // Already populated
+        if (!el) return;
+        
+        // Only populate if empty (length <= 1 means just the default "Select" option)
+        if (el.options.length > 1) return; 
 
         el.innerHTML = '<option value="">Select Time</option>';
         for (let h = 0; h < 24; h++) {
@@ -36,10 +43,11 @@ const SleepLog = {
         const display = document.getElementById('sleepDuration');
 
         if (start && end) {
+            // Use dummy date to compare times
             const d1 = new Date(`2000-01-01T${start}`);
             const d2 = new Date(`2000-01-01T${end}`);
             
-            // Handle overnight (end time is smaller than start time)
+            // Handle overnight (if end time is smaller than start time, assume next day)
             if (d2 < d1) d2.setDate(d2.getDate() + 1);
 
             const diffMs = d2 - d1;
@@ -79,6 +87,10 @@ const SleepLog = {
         setTimeout(() => {
             btn.innerText = oldText;
             btn.disabled = false;
+            
+            // Important: Reset Wizard State
+            if(typeof DiaryWizard !== 'undefined') DiaryWizard.init();
+            
             Modals.close();
             if (typeof FeedView !== 'undefined') FeedView.render();
         }, 800);
