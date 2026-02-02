@@ -4,17 +4,22 @@
  */
 const FoodLog = {
     init: () => {
-        // Set default time to now
         const now = new Date();
         const timeStr = now.toTimeString().substring(0, 5);
-        document.getElementById('foodTime').value = timeStr;
+        const timeEl = document.getElementById('foodTime');
+        if(timeEl) timeEl.value = timeStr;
     },
 
     reset: () => {
-        document.getElementById('foodType').value = "";
-        document.getElementById('foodDetails').value = "";
-        document.getElementById('foodQuantity').value = "";
-        document.getElementById('foodInputArea').classList.add('hidden');
+        const typeEl = document.getElementById('foodType');
+        const detailsEl = document.getElementById('foodDetails');
+        const qtyEl = document.getElementById('foodQuantity');
+        const inputArea = document.getElementById('foodInputArea');
+
+        if(typeEl) typeEl.value = "";
+        if(detailsEl) detailsEl.value = "";
+        if(qtyEl) qtyEl.value = "";
+        if(inputArea) inputArea.classList.add('hidden');
     },
 
     onTypeChange: () => {
@@ -32,12 +37,12 @@ const FoodLog = {
 
         if (type === "Bottle") {
             // Show Quantity, Hide Text Details
-            detailContainer.classList.add('hidden');
-            qtyContainer.classList.remove('hidden');
+            if(detailContainer) detailContainer.classList.add('hidden');
+            if(qtyContainer) qtyContainer.classList.remove('hidden');
         } else {
             // Show Text Details, Hide Quantity
-            detailContainer.classList.remove('hidden');
-            qtyContainer.classList.add('hidden');
+            if(detailContainer) detailContainer.classList.remove('hidden');
+            if(qtyContainer) qtyContainer.classList.add('hidden');
         }
     },
 
@@ -57,10 +62,12 @@ const FoodLog = {
         }
 
         const btn = document.getElementById('btnSubmitFood');
-        const oldText = btn.innerText;
+        const oldText = btn ? btn.innerText : "Save";
         
-        btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin mr-2"></i> Saving...`;
-        btn.disabled = true;
+        if(btn) {
+            btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin mr-2"></i> Saving...`;
+            btn.disabled = true;
+        }
 
         // Prepare Data
         const entryData = {
@@ -72,8 +79,14 @@ const FoodLog = {
         await API.logDiary(STATE.child.childId, "Food", entryData);
         
         setTimeout(() => {
-            btn.innerText = oldText;
-            btn.disabled = false;
+            if(btn) {
+                btn.innerText = oldText;
+                btn.disabled = false;
+            }
+            
+            // Critical: Reset Wizard to main menu
+            if(typeof DiaryWizard !== 'undefined') DiaryWizard.init();
+            
             Modals.close();
             if (typeof FeedView !== 'undefined') FeedView.render();
         }, 800);
