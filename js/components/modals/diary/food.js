@@ -47,8 +47,13 @@ const FoodLog = {
         //     imageUrl = await Cloudinary.uploadImage(fileInput, STATE.child.childId);
         // }
         
-        // API call (unchanged)
-        await API.logDiaryEntry(STATE.child.childId, "Food", { type, details, quantity, time }); // Add imageUrl if implemented
+        // API call (map to subtype/details to match examples)
+        const entryData = {
+            subtype: type,  // Map to match examples/tile
+            details: (type === 'Bottle') ? quantity : details,  // Conditional for Bottle
+            time
+        };
+        await API.logDiaryEntry(STATE.child.childId, "Food", entryData); // Add imageUrl if implemented
         
         btn.innerHTML = `<i class="fa-solid fa-check mr-2"></i> ${TXT?.COMPONENTS?.MODALS?.OBSERVATION?.SUCCESS_MSG || 'Added!'}`;
         btn.classList.add('btn-success');
