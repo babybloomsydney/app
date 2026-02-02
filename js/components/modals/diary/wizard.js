@@ -1,79 +1,67 @@
-/**
- * DIARY WIZARD MANAGER
- * Handles navigation between Food and Sleep modes.
- * Fixes: Ensures navigation resets properly on close/back.
- */
 const DiaryWizard = {
-    state: { mode: null },
-
+    // Entry Point (Called by FAB)
     init: () => {
-        DiaryWizard.state.mode = null;
-        
-        // 1. Reset Sub-component Inputs (Safety Checked)
-        if(typeof FoodLog !== 'undefined' && FoodLog.reset) FoodLog.reset();
-        if(typeof SleepLog !== 'undefined' && SleepLog.reset) SleepLog.reset();
+        // 1. Reset Inputs (Calls sub-component resets)
+        if(typeof FoodLog !== 'undefined') FoodLog.reset();
+        if(typeof SleepLog !== 'undefined') SleepLog.reset();
 
-        // 2. FORCE NAVIGATION RESET
-        // Explicitly hide sub-steps and show the main menu
-        const steps = ['diaryStepFood', 'diaryStepSleep'];
-        steps.forEach(id => {
-            const el = document.getElementById(id);
-            if (el) el.classList.add('hidden');
-        });
+        // 2. Navigation Reset (Critical Fix)
+        // Ensure Step 1 is visible, others are hidden
+        DiaryWizard.toggle('diaryStep1', true);
+        DiaryWizard.toggle('diaryStepFood', false);
+        DiaryWizard.toggle('diaryStepSleep', false);
         
-        const startScreen = document.getElementById('diaryStep1');
-        if (startScreen) startScreen.classList.remove('hidden');
-        
-        // 3. Reset Header (Hide Back Button)
+        // 3. Header Reset
         const backBtn = document.getElementById('diaryBackBtn');
         const title = document.getElementById('diaryTitle');
-        
-        if(backBtn) backBtn.classList.add('hidden');
-        if(title && typeof TXT !== 'undefined') title.innerText = TXT.COMPONENTS.MODALS.DIARY.HEADER;
+        if(backBtn) backBtn.classList.add('hidden'); // Hide Back on Home
+        if(title) title.innerText = "New Diary Entry";
     },
 
-    // --- NAVIGATION ACTIONS ---
-    
+    // Navigate to Food
     goFood: () => { 
-        DiaryWizard.state.mode = 'Food'; 
-        DiaryWizard.showStep('diaryStepFood'); 
-        DiaryWizard.updateHeader(TXT.COMPONENTS.MODALS.DIARY.HEADER_FOOD); 
+        DiaryWizard.toggle('diaryStep1', false);
+        DiaryWizard.toggle('diaryStepFood', true);
+        
+        // Show Back Button & Update Title
+        DiaryWizard.updateHeader("Food Log");
+        
+        // Init Sub-component
         if(typeof FoodLog !== 'undefined') FoodLog.init();
     },
     
+    // Navigate to Sleep
     goSleep: () => { 
-        DiaryWizard.state.mode = 'Sleep'; 
-        DiaryWizard.showStep('diaryStepSleep'); 
-        DiaryWizard.updateHeader(TXT.COMPONENTS.MODALS.DIARY.HEADER_SLEEP); 
+        DiaryWizard.toggle('diaryStep1', false);
+        DiaryWizard.toggle('diaryStepSleep', true);
+        
+        // Show Back Button & Update Title
+        DiaryWizard.updateHeader("Sleep Log");
+        
+        // Init Sub-component
         if(typeof SleepLog !== 'undefined') SleepLog.init();
     },
 
+    // Back Button Handler
     back: () => {
-        // Always return to the start screen
-        DiaryWizard.init(); 
+        DiaryWizard.init(); // Reset to main menu
     },
 
-    // --- HELPERS ---
-
-    showStep: (activeId) => {
-        // Hide all steps first
-        const steps = ['diaryStep1', 'diaryStepFood', 'diaryStepSleep'];
-        steps.forEach(id => {
-            const el = document.getElementById(id);
-            if(el) el.classList.add('hidden');
-        });
+    // Helper to toggle visibility by ID
+    toggle: (id, show) => {
+        const el = document.getElementById(id);
+        if(!el) return console.error(`Element ID '${id}' not found!`);
         
-        // Show the active one
-        const activeEl = document.getElementById(activeId);
-        if(activeEl) activeEl.classList.remove('hidden');
+        if (show) el.classList.remove('hidden');
+        else el.classList.add('hidden');
     },
 
+    // Helper to update header state
     updateHeader: (txt) => {
         const backBtn = document.getElementById('diaryBackBtn');
         const title = document.getElementById('diaryTitle');
         
-        // Show Back Button since we are deep in a menu
-        if(backBtn) backBtn.classList.remove('hidden');
+        if(backBtn) backBtn.classList.remove('hidden'); // SHOW Back Btn
         if(title) title.innerText = txt;
     }
 };
