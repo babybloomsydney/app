@@ -9,14 +9,16 @@ const DiaryWizard = {
     init: () => {
         DiaryWizard.state.mode = null;
         
-        // 1. Reset Inputs
+        // 1. Reset Inputs for sub-components
         if(typeof FoodLog !== 'undefined') FoodLog.reset();
         if(typeof SleepLog !== 'undefined') SleepLog.reset();
 
-        // 2. Show Start Screen
-        DiaryWizard.showStep('diaryStep1');
+        // 2. FORCE Show Start Screen (Hide others)
+        const steps = ['diaryStepFood', 'diaryStepSleep'];
+        steps.forEach(id => document.getElementById(id).classList.add('hidden'));
+        document.getElementById('diaryStep1').classList.remove('hidden');
         
-        // Reset Header
+        // 3. Reset Header
         const backBtn = document.getElementById('diaryBackBtn');
         const title = document.getElementById('diaryTitle');
         if(backBtn) backBtn.classList.add('hidden');
@@ -39,7 +41,8 @@ const DiaryWizard = {
     },
 
     back: () => {
-        DiaryWizard.init(); // Reset to start
+        // Just re-run init to go back to square one
+        DiaryWizard.init(); 
     },
 
     showStep: (activeId) => {
