@@ -18,11 +18,11 @@ const FeedCard_Diary = {
             colorClass = "bg-orange-100 text-orange-600";
             if (subtype === "Bottle") iconClass = "fa-solid fa-bottle-water";
             else iconClass = "fa-solid fa-utensils";
-            title = `Food: ${subtype}`;
+            title = `${subtype}`;
         } else if (context === "SLEEP") {
             colorClass = "bg-indigo-100 text-indigo-600";
             iconClass = "fa-solid fa-moon";
-            title = "Sleep Log";
+            title = "Sleep";
         }
         // Specific Content Rendering
         let contentHtml = "";
