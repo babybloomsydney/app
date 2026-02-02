@@ -13,10 +13,12 @@ const FoodLog = {
         const type = document.getElementById('foodType').value;
         const inputArea = document.getElementById('foodInputArea');
         const qtyContainer = document.getElementById('foodQtyContainer');
+        const detailContainer = document.getElementById('foodDetailContainer');  // Issue #2: Toggle details
         
         if (type) {
             if (inputArea) inputArea.classList.remove('hidden');
             if (qtyContainer) qtyContainer.classList.toggle('hidden', type !== 'Bottle');
+            if (detailContainer) detailContainer.classList.toggle('hidden', type === 'Bottle');  // Hide for Bottle
         } else {
             if (inputArea) inputArea.classList.add('hidden');
         }
