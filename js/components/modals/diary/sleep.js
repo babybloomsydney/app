@@ -1,10 +1,13 @@
 /**
  * DIARY: SLEEP
  * Handles sleep entry submission and time population.
+ * Emulates observation sub-components (e.g., ObsGeneral) for init/reset/submit.
  */
 const SleepLog = {
     init: () => {
-        // Populate time selects if empty
+        // Emulate observation init: Reset and populate if needed
+        SleepLog.reset();
+        
         const startSelect = document.getElementById('sleepStart');
         const endSelect = document.getElementById('sleepEnd');
         
@@ -14,9 +17,6 @@ const SleepLog = {
         if (endSelect && endSelect.innerHTML === "") {
             SleepLog.populateTimes(endSelect);
         }
-        
-        // Reset duration display
-        document.getElementById('sleepDuration').innerText = '--';
     },
     
     populateTimes: (select) => {
@@ -55,6 +55,7 @@ const SleepLog = {
     },
     
     submit: async () => {
+        // Emulate observation submit (e.g., ObsGeneral.submit)
         const start = document.getElementById('sleepStart').value;
         const end = document.getElementById('sleepEnd').value;
         
@@ -66,8 +67,8 @@ const SleepLog = {
         btn.classList.add('btn-success');
         btn.disabled = true;
         
-        // API call (adapt to your endpoint, e.g., logDiaryEntry)
-        await API.logDiaryEntry(STATE.child.childId, "Sleep", { start, end }); // Reuse or create new
+        // API call (as per user: assume works; no change needed)
+        await API.logDiaryEntry(STATE.child.childId, "Sleep", { start, end });
         
         setTimeout(() => {
             btn.innerText = oldText;
@@ -79,8 +80,13 @@ const SleepLog = {
     },
     
     reset: () => {
-        document.getElementById('sleepStart').value = "";
-        document.getElementById('sleepEnd').value = "";
-        document.getElementById('sleepDuration').innerText = '--';
+        // Emulate observation reset
+        const startSelect = document.getElementById('sleepStart');
+        const endSelect = document.getElementById('sleepEnd');
+        const durationEl = document.getElementById('sleepDuration');
+        
+        if (startSelect) startSelect.value = "";
+        if (endSelect) endSelect.value = "";
+        if (durationEl) durationEl.innerText = '--';
     }
 };
