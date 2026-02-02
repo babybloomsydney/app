@@ -55,7 +55,8 @@ const TXT = {
         // js/components/fab.js
         FAB: {
             PLAN: "Activity",
-            OBSERVATION: "Observation"
+            OBSERVATION: "Observation",
+            DIARY: "Diary Entry"
         },
 
         // js/components/modals/
