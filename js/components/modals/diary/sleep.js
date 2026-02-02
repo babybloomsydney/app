@@ -4,10 +4,11 @@
  */
 const SleepLog = {
     init: () => {
-        // Force population of dropdowns every time to be safe
+        // Force population of dropdowns
         SleepLog.renderTimeOptions('sleepStart');
         SleepLog.renderTimeOptions('sleepEnd');
-        document.getElementById('sleepDuration').innerText = "--";
+        const dur = document.getElementById('sleepDuration');
+        if(dur) dur.innerText = "--";
     },
 
     reset: () => {
@@ -26,15 +27,17 @@ const SleepLog = {
         // Only populate if empty (length <= 1 means just the default "Select" option)
         if (el.options.length > 1) return; 
 
-        el.innerHTML = '<option value="">Select Time</option>';
+        // Build string first for performance
+        let html = '<option value="">Select Time</option>';
         for (let h = 0; h < 24; h++) {
             for (let m = 0; m < 60; m += 5) { // 5 minute intervals
                 const hh = h.toString().padStart(2, '0');
                 const mm = m.toString().padStart(2, '0');
                 const time = `${hh}:${mm}`;
-                el.innerHTML += `<option value="${time}">${time}</option>`;
+                html += `<option value="${time}">${time}</option>`;
             }
         }
+        el.innerHTML = html;
     },
 
     calcDuration: () => {
@@ -43,7 +46,6 @@ const SleepLog = {
         const display = document.getElementById('sleepDuration');
 
         if (start && end) {
-            // Use dummy date to compare times
             const d1 = new Date(`2000-01-01T${start}`);
             const d2 = new Date(`2000-01-01T${end}`);
             
@@ -88,7 +90,7 @@ const SleepLog = {
             btn.innerText = oldText;
             btn.disabled = false;
             
-            // Important: Reset Wizard State
+            // Critical: Reset Wizard to main menu so it doesn't stick
             if(typeof DiaryWizard !== 'undefined') DiaryWizard.init();
             
             Modals.close();
