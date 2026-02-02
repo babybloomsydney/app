@@ -62,4 +62,15 @@ const API = {
             authorId: STATE.user.id
         });
     }
+
+    // NEW: Log Diary Entry
+    logDiary: async (childId, type, entryData) => {
+        return await sendRequest({
+            action: "logDiaryEntry",
+            childId, 
+            type, // "Food" or "Sleep"
+            entryData, 
+            authorId: STATE.user.id
+        });
+    }
 };
