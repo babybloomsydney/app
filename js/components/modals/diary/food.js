@@ -1,75 +1,70 @@
 /**
- * DIARY: FOOD LOG
+ * DIARY: FOOD
+ * Handles food entry submission.
+ * Emulates observation sub-components (e.g., ObsFocused) for init/reset/submit.
+ * Assumes this file exists; if not, create it with this content.
  */
 const FoodLog = {
     init: () => {
-        const now = new Date();
-        const timeStr = now.toTimeString().substring(0, 5);
-        const timeEl = document.getElementById('foodTime');
-        if(timeEl) timeEl.value = timeStr;
+        // Emulate observation init: Reset fields
+        FoodLog.reset();
+        
+        // Show/hide based on type (existing logic)
+        FoodLog.onTypeChange();
     },
-
-    reset: () => {
-        const typeEl = document.getElementById('foodType');
-        const detailsEl = document.getElementById('foodDetails');
-        const qtyEl = document.getElementById('foodQuantity');
-        const inputArea = document.getElementById('foodInputArea');
-
-        if(typeEl) typeEl.value = "";
-        if(detailsEl) detailsEl.value = "";
-        if(qtyEl) qtyEl.value = "";
-        if(inputArea) inputArea.classList.add('hidden');
-    },
-
+    
     onTypeChange: () => {
         const type = document.getElementById('foodType').value;
         const inputArea = document.getElementById('foodInputArea');
-        const detailContainer = document.getElementById('foodDetailContainer');
         const qtyContainer = document.getElementById('foodQtyContainer');
-
-        if (!type) {
-            inputArea.classList.add('hidden');
-            return;
-        }
-
-        inputArea.classList.remove('hidden');
-
-        if (type === "Bottle") {
-            if(detailContainer) detailContainer.classList.add('hidden');
-            if(qtyContainer) qtyContainer.classList.remove('hidden');
+        
+        if (type) {
+            if (inputArea) inputArea.classList.remove('hidden');
+            if (qtyContainer) qtyContainer.classList.toggle('hidden', type !== 'Bottle');
         } else {
-            if(detailContainer) detailContainer.classList.remove('hidden');
-            if(qtyContainer) qtyContainer.classList.add('hidden');
+            if (inputArea) inputArea.classList.add('hidden');
         }
     },
-
+    
     submit: async () => {
+        // Emulate observation submit
         const type = document.getElementById('foodType').value;
+        const details = document.getElementById('foodDetails').value;
+        const quantity = document.getElementById('foodQuantity')?.value || '';
         const time = document.getElementById('foodTime').value;
-        let details = "";
-
-        if (type === "Bottle") {
-            const quantity = document.getElementById('foodQuantity').value;
-            if (!quantity) return alert("Please select a quantity.");
-            details = quantity;
-        } else {
-            details = document.getElementById('foodDetails').value;
-            if (!details.trim()) return alert("Please enter details.");
-        }
-
+        
+        if (!type || !time) return alert("Please select type and time.");
+        
         const btn = document.getElementById('btnSubmitFood');
-        const oldText = btn ? btn.innerText : "Save";
-        if(btn) { btn.innerText = "Saving..."; btn.disabled = true; }
-
-        const entryData = { subtype: type, details: details, time: time };
-
-        await API.logDiary(STATE.child.childId, "Food", entryData);
+        const oldText = btn.innerText;
+        btn.innerHTML = `<i class="fa-solid fa-check mr-2"></i> Added!`;
+        btn.classList.add('btn-success');
+        btn.disabled = true;
+        
+        // API call (as per user: assume works)
+        await API.logDiaryEntry(STATE.child.childId, "Food", { type, details, quantity, time });
         
         setTimeout(() => {
-            if(btn) { btn.innerText = oldText; btn.disabled = false; }
-            DiaryWizard.init(); 
+            btn.innerText = oldText;
+            btn.classList.remove('btn-success');
+            btn.disabled = false;
             Modals.close();
             if (typeof FeedView !== 'undefined') FeedView.render();
         }, 800);
+    },
+    
+    reset: () => {
+        // Emulate observation reset
+        const typeSelect = document.getElementById('foodType');
+        const detailsTextarea = document.getElementById('foodDetails');
+        const qtySelect = document.getElementById('foodQuantity');
+        const timeInput = document.getElementById('foodTime');
+        const inputArea = document.getElementById('foodInputArea');
+        
+        if (typeSelect) typeSelect.value = "";
+        if (detailsTextarea) detailsTextarea.value = "";
+        if (qtySelect) qtySelect.value = "";
+        if (timeInput) timeInput.value = "";
+        if (inputArea) inputArea.classList.add('hidden');
     }
 };
