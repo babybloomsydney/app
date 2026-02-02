@@ -62,7 +62,9 @@ const SleepLog = {
         // }
         
         // API call (add duration/notes)
-        await API.logDiaryEntry(STATE.child.childId, "Sleep", { start, end, duration, notes }); // Add imageUrl if implemented
+        const entryData = { start, end, duration };
+        if (notes.trim()) entryData.notes = notes;  // Optional: Only add if non-empty
+        await API.logDiaryEntry(STATE.child.childId, "Sleep", entryData); // Add imageUrl if implemented
         
         btn.innerHTML = `<i class="fa-solid fa-check mr-2"></i> ${TXT?.COMPONENTS?.MODALS?.OBSERVATION?.SUCCESS_MSG || 'Added!'}`;
         btn.classList.add('btn-success');
