@@ -1,13 +1,11 @@
 /**
  * DIARY: SLEEP
  * Handles sleep entry submission and time population.
- * Emulates observation sub-components (e.g., ObsGeneral) for init/reset/submit.
+ * Emulates ObsGeneral for submit (with spinner) and adds reset/init.
  */
 const SleepLog = {
     init: () => {
-        // Emulate observation init: Reset and populate if needed
-        SleepLog.reset();
-        
+        // Emulate ObsGeneral: Minimal init, populate if needed
         const startSelect = document.getElementById('sleepStart');
         const endSelect = document.getElementById('sleepEnd');
         
@@ -55,7 +53,7 @@ const SleepLog = {
     },
     
     submit: async () => {
-        // Emulate observation submit (e.g., ObsGeneral.submit)
+        // Emulate ObsGeneral.submit exactly (spinner, success, image if added later)
         const start = document.getElementById('sleepStart').value;
         const end = document.getElementById('sleepEnd').value;
         
@@ -63,30 +61,41 @@ const SleepLog = {
         
         const btn = document.getElementById('btnSubmitSleep');
         const oldText = btn.innerText;
-        btn.innerHTML = `<i class="fa-solid fa-check mr-2"></i> Added!`;
-        btn.classList.add('btn-success');
+        
+        // UI Feedback (emulating spinner)
+        btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin mr-2"></i> Uploading...`;
         btn.disabled = true;
         
-        // API call (as per user: assume works; no change needed)
-        await API.logDiaryEntry(STATE.child.childId, "Sleep", { start, end });
+        // Image upload (emulating ObsGeneral; add input in HTML if needed)
+        let imageUrl = null;
+        // const fileInput = document.getElementById('diaryImageSleep'); // Add to HTML if wanted
+        // if (fileInput && fileInput.files.length > 0) {
+        //     imageUrl = await Cloudinary.uploadImage(fileInput, STATE.child.childId);
+        // }
+        
+        // API call (unchanged)
+        await API.logDiaryEntry(STATE.child.childId, "Sleep", { start, end }); // Add imageUrl if implemented
+        
+        btn.innerHTML = `<i class="fa-solid fa-check mr-2"></i> ${TXT?.COMPONENTS?.MODALS?.OBSERVATION?.SUCCESS_MSG || 'Added!'}`;
+        btn.classList.add('btn-success');
         
         setTimeout(() => {
             btn.innerText = oldText;
             btn.classList.remove('btn-success');
             btn.disabled = false;
+            
+            // Clear input for next time (emulating file clear)
+            // if (fileInput) fileInput.value = "";
+            
             Modals.close();
             if (typeof FeedView !== 'undefined') FeedView.render();
         }, 800);
     },
     
     reset: () => {
-        // Emulate observation reset
-        const startSelect = document.getElementById('sleepStart');
-        const endSelect = document.getElementById('sleepEnd');
-        const durationEl = document.getElementById('sleepDuration');
-        
-        if (startSelect) startSelect.value = "";
-        if (endSelect) endSelect.value = "";
-        if (durationEl) durationEl.innerText = '--';
+        // Emulate implicit reset in ObsGeneral
+        document.getElementById('sleepStart').value = "";
+        document.getElementById('sleepEnd').value = "";
+        document.getElementById('sleepDuration').innerText = '--';
     }
 };
