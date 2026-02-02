@@ -1,47 +1,61 @@
 /**
  * FEED VIEW CONTROLLER
  * Aggregates all specific card renderers.
- * Features: Client-side filtering (Instant) & Context Logic.
+ * Features: Client-side filtering (Instant), Context Logic & Smart Polling.
  * Dependency: js/core/labels.js (TXT)
  */
 
 const FeedView = {
     currentFilter: 'All',
+    pollTimer: null, // NEW: Tracks the active timer
 
     // Main Entry Point
-    // forceRefresh = true: Calls Google API (Slow)
-    // forceRefresh = false: Uses local STATE.feed (Instant)
-    render: async (forceRefresh = true) => {
+    // forceRefresh: Calls API to get fresh data
+    // silent: If true, hides the loading spinner (used for background updates)
+    render: async (forceRefresh = true, silent = false) => {
+        
+        // 1. Clear previous timer to prevent duplicates
+        if (FeedView.pollTimer) {
+            clearTimeout(FeedView.pollTimer);
+            FeedView.pollTimer = null;
+        }
+
         const c = document.getElementById('feedContainer');
         if (!c) return;
 
-        // 1. Fetch Data (Only if forced or empty)
+        // 2. Fetch Data (Only if forced or empty)
         if (forceRefresh || !STATE.feed || STATE.feed.length === 0) {
-            c.innerHTML = `<div class="text-center py-10 text-gray-400"><i class="fa-solid fa-circle-notch fa-spin text-2xl"></i><p class="text-xs mt-2">${TXT.VIEWS.FEED.LOADING}</p></div>`;
+            // Only show spinner if this isn't a "silent" background poll
+            if (!silent) {
+                c.innerHTML = `<div class="text-center py-10 text-gray-400"><i class="fa-solid fa-circle-notch fa-spin text-2xl"></i><p class="text-xs mt-2">${TXT.VIEWS.FEED.LOADING}</p></div>`;
+            }
             
             const res = await API.fetchFeed(STATE.child.childId);
             
             if (res.status === "success") {
                 STATE.feed = res.data;
             } else {
-                c.innerHTML = `<div class="text-center py-10 text-red-400">${TXT.CORE.ERROR_NETWORK}</div>`;
+                if (!silent) c.innerHTML = `<div class="text-center py-10 text-red-400">${TXT.CORE.ERROR_NETWORK}</div>`;
                 return;
             }
         }
 
-        // 2. Apply Filters (Client-Side)
+        // 3. Apply Filters (Client-Side)
         const filteredData = FeedView.applyFilterLogic(STATE.feed);
         
-        // 3. Update UI
+        // 4. Update UI
         FeedView.updateFilterUI();
+        
+        // Don't wipe content if silent refresh and no data change (optional optimization), 
+        // but here we rebuild to be safe.
         c.innerHTML = "";
 
         if (filteredData.length === 0) {
             c.innerHTML = `<div class="text-center py-10 text-gray-400">${TXT.VIEWS.FEED.EMPTY}</div>`;
-            return;
+            // Even if empty, we might need to poll if there are pending items hidden by filter
         }
 
-        // 4. Render Tiles
+        // 5. Render Tiles
         let html = "";
         filteredData.forEach(item => {
             try {
@@ -56,6 +70,18 @@ const FeedView = {
         });
         
         c.innerHTML = html;
+
+        // 6. SMART POLLING (NEW)
+        // Check if ANY item in the feed (even hidden ones) is still 'PENDING'
+        const hasPendingItems = STATE.feed.some(item => item.status === 'PENDING');
+        
+        if (hasPendingItems) {
+            console.log("Feed has pending items... scheduling refresh in 10s.");
+            FeedView.pollTimer = setTimeout(() => {
+                // Recursive call: force refresh, but do it silently
+                FeedView.render(true, true); 
+            }, 10000); // 10 Seconds
+        }
     },
 
     // Logic to decide what shows up in each tab
