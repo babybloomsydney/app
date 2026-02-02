@@ -13,13 +13,24 @@ const FAB = {
 
         const logSpan = document.querySelector('button[onclick*="openLog"] span');
         if (logSpan) logSpan.innerText = TXT.COMPONENTS.FAB.OBSERVATION;
+
+        // NEW: Diary Button Label
+        const diarySpan = document.querySelector('button[onclick*="openDiary"] span');
+        if (diarySpan) diarySpan.innerText = TXT.COMPONENTS.FAB.DIARY;
     },
 
     toggle: () => {
         document.getElementById('fabMenu').classList.toggle('hidden');
         document.getElementById('fabBtn').classList.toggle('fab-active');
         const i = document.getElementById('fabIcon');
-        i.className = i.className.includes('plus') ? "fa-solid fa-times" : "fa-solid fa-plus";
+        // Toggle icon class between plus and times
+        if (i.classList.contains('fa-plus')) {
+             i.classList.remove('fa-plus');
+             i.classList.add('fa-times');
+        } else {
+             i.classList.remove('fa-times');
+             i.classList.add('fa-plus');
+        }
     },
 
     openPlan: () => { 
@@ -30,6 +41,12 @@ const FAB = {
     openLog: () => { 
         FAB.toggle(); 
         Modals.open('log'); 
+    },
+
+    // NEW: Open Diary
+    openDiary: () => {
+        FAB.toggle();
+        Modals.open('diary');
     }
 };
 
