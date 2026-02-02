@@ -309,27 +309,27 @@
                 </div>
 
                 <!-- SLEEP LOG (Step 2b) -->
-                <div id="diaryStepSleep" class="hidden flex flex-col h-full space-y-4">
-                    <div class="grid grid-cols-2 gap-3">
-                        <div>
-                            <label class="text-xs font-bold text-slate-400 uppercase">Went to Sleep</label>
-                            <select id="sleepStart" onchange="SleepLog.calcDuration()" class="w-full bg-slate-50 border border-slate-200 p-3 rounded-xl text-sm font-bold text-slate-700 mt-1"></select>
-                        </div>
-                        <div>
-                            <label class="text-xs font-bold text-slate-400 uppercase">Woke Up</label>
-                            <select id="sleepEnd" onchange="SleepLog.calcDuration()" class="w-full bg-slate-50 border border-slate-200 p-3 rounded-xl text-sm font-bold text-slate-700 mt-1"></select>
-                        </div>
-                    </div>
-                    <div class="bg-indigo-50 border border-indigo-100 p-4 rounded-xl text-center">
-                        <p class="text-xs font-bold text-indigo-400 uppercase">Total Sleep</p>
-                        <p id="sleepDuration" class="text-2xl font-bold text-indigo-800">--</p>
-                    </div>
-                    <button onclick="SleepLog.submit()" id="btnSubmitSleep" class="w-full bg-indigo-600 text-white py-4 rounded-xl font-bold shadow-lg shadow-indigo-200">Log Sleep</button>
-                </div>
-
-            </div>
+<div id="diaryStepSleep" class="hidden flex flex-col h-full space-y-4">
+    <div class="grid grid-cols-2 gap-3">
+        <div>
+            <label class="text-xs font-bold text-slate-400 uppercase">Went to Sleep</label>
+            <input type="time" id="sleepStart" onchange="SleepLog.calcDuration()" class="w-full bg-slate-50 border border-slate-200 p-3 rounded-xl text-sm font-bold text-slate-700 mt-1">
+        </div>
+        <div>
+            <label class="text-xs font-bold text-slate-400 uppercase">Woke Up</label>
+            <input type="time" id="sleepEnd" onchange="SleepLog.calcDuration()" class="w-full bg-slate-50 border border-slate-200 p-3 rounded-xl text-sm font-bold text-slate-700 mt-1">
         </div>
     </div>
+    <div class="bg-indigo-50 border border-indigo-100 p-4 rounded-xl text-center">
+        <p class="text-xs font-bold text-indigo-400 uppercase">Total Sleep</p>
+        <p id="sleepDuration" class="text-2xl font-bold text-indigo-800">--</p>
+    </div>
+    <div>
+        <label class="text-xs font-bold text-slate-400 uppercase">Notes</label>
+        <textarea id="sleepNotes" class="w-full bg-slate-50 border border-slate-200 p-3 rounded-xl text-sm h-24 resize-none" placeholder="e.g. Slept well, no disturbances"></textarea>
+    </div>
+    <button onclick="SleepLog.submit()" id="btnSubmitSleep" class="w-full bg-indigo-600 text-white py-4 rounded-xl font-bold shadow-lg shadow-indigo-200">Log Sleep</button>
+</div>
 
     <!-- CORE SCRIPTS -->
     <script src="js/core/config.js"></script>
