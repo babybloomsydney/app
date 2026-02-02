@@ -7,7 +7,7 @@
 
 const FeedView = {
     currentFilter: 'All',
-    pollTimer: null, // NEW: Tracks the active timer
+    pollTimer: null, // NEW: Smart Polling Timer
 
     // Main Entry Point
     // forceRefresh: Calls API to get fresh data
@@ -25,7 +25,6 @@ const FeedView = {
 
         // 2. Fetch Data (Only if forced or empty)
         if (forceRefresh || !STATE.feed || STATE.feed.length === 0) {
-            // Only show spinner if this isn't a "silent" background poll
             if (!silent) {
                 c.innerHTML = `<div class="text-center py-10 text-gray-400"><i class="fa-solid fa-circle-notch fa-spin text-2xl"></i><p class="text-xs mt-2">${TXT.VIEWS.FEED.LOADING}</p></div>`;
             }
@@ -46,13 +45,10 @@ const FeedView = {
         // 4. Update UI
         FeedView.updateFilterUI();
         
-        // Don't wipe content if silent refresh and no data change (optional optimization), 
-        // but here we rebuild to be safe.
         c.innerHTML = "";
 
         if (filteredData.length === 0) {
             c.innerHTML = `<div class="text-center py-10 text-gray-400">${TXT.VIEWS.FEED.EMPTY}</div>`;
-            // Even if empty, we might need to poll if there are pending items hidden by filter
         }
 
         // 5. Render Tiles
@@ -64,6 +60,10 @@ const FeedView = {
                 else if (item.type === "OBSERVATION" && typeof FeedCard_Observation !== 'undefined') html += FeedCard_Observation.render(item);
                 else if (item.type === "PROGRESS" && typeof FeedCard_Progress !== 'undefined') html += FeedCard_Progress.render(item);
                 else if (item.type === "INSIGHT" && typeof FeedCard_Insight !== 'undefined') html += FeedCard_Insight.render(item);
+                
+                // NEW: Diary Support
+                else if (item.type === "DIARY" && typeof FeedCard_Diary !== 'undefined') html += FeedCard_Diary.render(item);
+                
             } catch (e) {
                 console.error("Render Error:", e);
             }
@@ -71,16 +71,14 @@ const FeedView = {
         
         c.innerHTML = html;
 
-        // 6. SMART POLLING (NEW)
-        // Check if ANY item in the feed (even hidden ones) is still 'PENDING'
+        // 6. SMART POLLING (Fixes "Stuck in Pending")
         const hasPendingItems = STATE.feed.some(item => item.status === 'PENDING');
         
         if (hasPendingItems) {
-            console.log("Feed has pending items... scheduling refresh in 10s.");
+            console.log("Activity generating... polling in 10s");
             FeedView.pollTimer = setTimeout(() => {
-                // Recursive call: force refresh, but do it silently
-                FeedView.render(true, true); 
-            }, 10000); // 10 Seconds
+                FeedView.render(true, true); // Silent refresh
+            }, 10000);
         }
     },
 
@@ -90,18 +88,17 @@ const FeedView = {
         
         return data.filter(item => {
 
-            // Tab: ALL (The curated story)
+            // Tab: ALL
             if (mode === 'All') {
-                if (item.type === 'ACTIVITY' || item.type === 'REPORT' || item.type === 'INSIGHT') return true;
+                // Added DIARY to allowed types
+                if (item.type === 'ACTIVITY' || item.type === 'REPORT' || item.type === 'INSIGHT' || item.type === 'DIARY') return true;
                 
-                // Hide child logs
                 if (item.type === 'OBSERVATION') {
                     if (item.context === 'ACTIVITY') return false;   
                     if (item.context === 'ASSESSMENT') return false; 
                     return true; 
                 }
                 
-                // Keep 'All' clean: Hide PROGRESS logs if they are just side-effects of Activities
                 if (item.type === 'PROGRESS') {
                     if (item.context === 'ACTIVITY') return false;
                     return true;
@@ -110,15 +107,15 @@ const FeedView = {
                 return false;
             }
 
-            // Tab: ACTIVITIES (New)
+            // Tab: ACTIVITIES
             if (mode === 'Activities') {
                 return item.type === 'ACTIVITY' || item.type === 'REPORT';
             }
 
-            // Tab: OBS
-            if (mode === 'Obs') return item.type === 'OBSERVATION';
+            // Tab: OBS (Added Diary here too, as it fits "Observations")
+            if (mode === 'Obs') return item.type === 'OBSERVATION' || item.type === 'DIARY';
 
-            // Tab: GROWTH (Updated: show all PROGRESS items regardless of context)
+            // Tab: GROWTH
             if (mode === 'Growth') {
                 return item.type === 'PROGRESS';
             }
@@ -130,13 +127,12 @@ const FeedView = {
         });
     },
 
-    // User Click Handler (Instant)
+    // User Click Handler
     filter: (type) => {
         FeedView.currentFilter = type;
-        FeedView.render(false); // False = Do not call API, just re-sort
+        FeedView.render(false); 
     },
 
-    // Visual updates for the pills
     updateFilterUI: () => {
         document.querySelectorAll('.filter-pill').forEach(btn => {
             const match = btn.getAttribute('onclick').match(/'([^']+)'/);
