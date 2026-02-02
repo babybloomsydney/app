@@ -9,11 +9,10 @@ const FeedCard_Diary = {
         const context = item.context || "DIARY";
         const details = item.data.details || "";
         const time = item.data.time || item.data.start || "";
-        
+       
         let iconClass = "fa-solid fa-note-sticky";
         let colorClass = "bg-slate-100 text-slate-600";
         let title = "Diary Entry";
-
         // Style based on Context/Subtype
         if (context === "FOOD") {
             colorClass = "bg-orange-100 text-orange-600";
@@ -25,10 +24,9 @@ const FeedCard_Diary = {
             iconClass = "fa-solid fa-moon";
             title = "Sleep Log";
         }
-
         // Specific Content Rendering
         let contentHtml = "";
-        
+       
         if (context === "SLEEP") {
             const start = item.data.start || "?";
             const end = item.data.end || "?";
@@ -46,6 +44,7 @@ const FeedCard_Diary = {
                 </div>
             </div>
             ${duration ? `<div class="mt-2 text-center text-xs font-bold text-indigo-500">Total: ${duration}</div>` : ''}
+            ${item.data.notes ? `<div class="mt-3 p-3 bg-slate-50 rounded-xl border border-slate-100 text-sm text-slate-600">${item.data.notes}</div>` : ''}  // New: Optional notes
             `;
         } else {
             // Food
@@ -55,7 +54,6 @@ const FeedCard_Diary = {
                 <span class="text-xs font-mono text-slate-400">${time}</span>
             </div>`;
         }
-
         return `
         <div class="feed-item bg-white p-5 rounded-2xl shadow-sm border border-slate-100 mb-4 animate-fade-in">
             <div class="flex justify-between items-center mb-3">
