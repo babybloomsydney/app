@@ -44,8 +44,7 @@ const FeedCard_Diary = {
                 </div>
             </div>
             ${duration ? `<div class="mt-2 text-center text-xs font-bold text-indigo-500">Total: ${duration}</div>` : ''}
-            ${item.data.notes ? `<div class="mt-3 p-3 bg-slate-50 rounded-xl border border-slate-100 text-sm text-slate-600">${item.data.notes}</div>` : ''}
-            ;
+            ${item.data.notes ? `<div class="mt-3 p-3 bg-slate-50 rounded-xl border border-slate-100 text-sm text-slate-600">${item.data.notes}</div>` : ''}`;
         } else {
             // Food
             contentHtml = `
